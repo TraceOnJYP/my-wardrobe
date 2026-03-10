@@ -10,18 +10,29 @@ import type { Locale } from "@/features/i18n/routing";
 import { getAnalyticsSummary } from "@/features/insights/api";
 
 type InsightTab = "all" | "clothing" | "accessory" | "bag" | "shoes" | "jewelry" | "other";
+type InsightRange = "6" | "12" | "24";
 
 export default async function InsightsPage({
   params,
   searchParams,
 }: {
   params: Promise<{ locale: Locale }>;
-  searchParams: Promise<{ type?: InsightTab }>;
+  searchParams: Promise<{
+    type?: InsightTab;
+    spendRange?: InsightRange;
+    ootdRange?: InsightRange;
+  }>;
 }) {
   const { locale } = await params;
-  const { type = "all" } = await searchParams;
+  const { type = "all", spendRange = "6", ootdRange = "6" } = await searchParams;
   const dict = await getDictionary(locale);
-  const summary = await getAnalyticsSummary(locale, type);
+  const spendMonthRange = spendRange === "12" || spendRange === "24" ? Number(spendRange) : 6;
+  const ootdMonthRange = ootdRange === "12" || ootdRange === "24" ? Number(ootdRange) : 6;
+  const [spendSummary, ootdSummary] = await Promise.all([
+    getAnalyticsSummary(locale, type, spendMonthRange as 6 | 12 | 24),
+    getAnalyticsSummary(locale, type, ootdMonthRange as 6 | 12 | 24),
+  ]);
+  const summary = spendSummary;
   const tabs = [
     { value: "all", label: dict.wardrobe.types.all },
     { value: "clothing", label: dict.wardrobe.types.clothing },
@@ -31,6 +42,25 @@ export default async function InsightsPage({
     { value: "jewelry", label: dict.wardrobe.types.jewelry },
     { value: "other", label: dict.wardrobe.types.other },
   ] as const satisfies Array<{ value: InsightTab; label: string }>;
+  const rangeTabs = [
+    { value: "6", label: locale === "zh-CN" ? "近 6 个月" : "6M" },
+    { value: "12", label: locale === "zh-CN" ? "近 12 个月" : "12M" },
+    { value: "24", label: locale === "zh-CN" ? "近 24 个月" : "24M" },
+  ] as const satisfies Array<{ value: InsightRange; label: string }>;
+  const renderRangeActions = (kind: "spend" | "ootd", currentRange: InsightRange) =>
+    rangeTabs.map((tab) => (
+      <Link
+        key={tab.value}
+        href={`/${locale}/insights?type=${type}&spendRange=${kind === "spend" ? tab.value : spendRange}&ootdRange=${kind === "ootd" ? tab.value : ootdRange}`}
+        className={
+          currentRange === tab.value
+            ? "rounded-full bg-[rgba(121,82,48,0.12)] px-2.5 py-1 text-[11px] font-medium text-[hsl(var(--foreground))] whitespace-nowrap"
+            : "rounded-full border border-white/70 bg-white/80 px-2.5 py-1 text-[11px] font-medium text-[hsl(var(--muted-foreground))] whitespace-nowrap transition hover:border-[hsl(var(--primary))/0.18] hover:bg-white hover:text-[hsl(var(--foreground))]"
+        }
+      >
+        {tab.label}
+      </Link>
+    ));
 
   return (
     <div className="space-y-6">
@@ -40,7 +70,7 @@ export default async function InsightsPage({
         {tabs.map((tab) => (
           <Link
             key={tab.value}
-            href={`/${locale}/insights?type=${tab.value}`}
+            href={`/${locale}/insights?type=${tab.value}&spendRange=${spendRange}&ootdRange=${ootdRange}`}
             className={
               type === tab.value
                 ? "rounded-full bg-[hsl(var(--primary))] px-4 py-2 text-sm font-medium text-[hsl(var(--primary-foreground))] shadow-[0_10px_24px_rgba(77,57,36,0.16)]"
@@ -58,15 +88,17 @@ export default async function InsightsPage({
         <TrendCard
           title={dict.insights.modules.spendTrend.title}
           subtitle={dict.insights.modules.spendTrend.subtitle}
-          entries={summary.data.monthlySpendTrend}
+          entries={spendSummary.data.monthlySpendTrend}
           emptyText={dict.insights.empty}
           formatter={(value) => `¥${value}`}
+          actions={renderRangeActions("spend", spendRange)}
         />
         <TrendCard
           title={dict.insights.modules.ootdTrend.title}
           subtitle={dict.insights.modules.ootdTrend.subtitle}
-          entries={summary.data.monthlyOotdCounts}
+          entries={ootdSummary.data.monthlyOotdCounts}
           emptyText={dict.insights.empty}
+          actions={renderRangeActions("ootd", ootdRange)}
         />
       </div>
 

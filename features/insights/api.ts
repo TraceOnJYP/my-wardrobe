@@ -11,6 +11,7 @@ import type {
 import type { WardrobeItem } from "@/types/item";
 
 type InsightItemType = "all" | "clothing" | "accessory" | "bag" | "shoes" | "jewelry" | "other";
+type InsightRange = 6 | 12 | 24;
 
 function roundShare(value: number, total: number) {
   if (total === 0) return 0;
@@ -65,13 +66,18 @@ function getEffectiveCostPerWear(item: WardrobeItem) {
   return item.price ? item.price / item.wearDays : 0;
 }
 
-function buildMonthlyTrend(records: Array<{ wearDate: string }>, locale: Locale): AnalyticsTrendEntry[] {
+function buildMonthlyTrend(
+  records: Array<{ wearDate: string }>,
+  locale: Locale,
+  monthRange: InsightRange,
+): AnalyticsTrendEntry[] {
   const now = new Date();
-  const months = Array.from({ length: 6 }, (_, index) => {
-    const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (5 - index), 1));
+  const months = Array.from({ length: monthRange }, (_, index) => {
+    const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (monthRange - 1 - index), 1));
     const key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
     const label = new Intl.DateTimeFormat(locale === "zh-CN" ? "zh-CN" : "en-US", {
       month: "short",
+      ...(monthRange > 12 ? { year: "2-digit" as const } : {}),
       timeZone: "UTC",
     }).format(date);
 
@@ -84,13 +90,18 @@ function buildMonthlyTrend(records: Array<{ wearDate: string }>, locale: Locale)
   }));
 }
 
-function buildMonthlySpendTrend(items: WardrobeItem[], locale: Locale): AnalyticsTrendEntry[] {
+function buildMonthlySpendTrend(
+  items: WardrobeItem[],
+  locale: Locale,
+  monthRange: InsightRange,
+): AnalyticsTrendEntry[] {
   const now = new Date();
-  const months = Array.from({ length: 6 }, (_, index) => {
-    const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (5 - index), 1));
+  const months = Array.from({ length: monthRange }, (_, index) => {
+    const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (monthRange - 1 - index), 1));
     const key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
     const label = new Intl.DateTimeFormat(locale === "zh-CN" ? "zh-CN" : "en-US", {
       month: "short",
+      ...(monthRange > 12 ? { year: "2-digit" as const } : {}),
       timeZone: "UTC",
     }).format(date);
 
@@ -108,6 +119,7 @@ function buildMonthlySpendTrend(items: WardrobeItem[], locale: Locale): Analytic
 export async function getAnalyticsSummary(
   locale: Locale,
   type: InsightItemType = "all",
+  monthRange: InsightRange = 6,
 ): Promise<{ data: AnalyticsSummary }> {
   const [itemsResponse, recordsResponse] = await Promise.all([
     getItems(locale, type === "all" ? {} : { type }),
@@ -193,8 +205,8 @@ export async function getAnalyticsSummary(
       ),
     );
 
-  const monthlyOotdCounts = buildMonthlyTrend(records, locale);
-  const monthlySpendTrend = buildMonthlySpendTrend(items, locale);
+  const monthlyOotdCounts = buildMonthlyTrend(records, locale, monthRange);
+  const monthlySpendTrend = buildMonthlySpendTrend(items, locale, monthRange);
 
   return {
     data: {
