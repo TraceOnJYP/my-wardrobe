@@ -47,6 +47,16 @@ export default async function InsightsPage({
     { value: "12", label: locale === "zh-CN" ? "近 12 个月" : "12M" },
     { value: "24", label: locale === "zh-CN" ? "近 24 个月" : "24M" },
   ] as const satisfies Array<{ value: InsightRange; label: string }>;
+  const getRangeLabel = (value: InsightRange) =>
+    locale === "zh-CN" ? `最近 ${value} 个月` : `the last ${value} months`;
+  const spendSubtitle =
+    locale === "zh-CN"
+      ? `按照购买时间统计${getRangeLabel(spendRange)}的消费变化。`
+      : `Track spend changes over ${getRangeLabel(spendRange)} based on purchase dates.`;
+  const ootdSubtitle =
+    locale === "zh-CN"
+      ? `${getRangeLabel(ootdRange)}的穿搭记录趋势。`
+      : `Outfit activity across ${getRangeLabel(ootdRange)}.`;
   const renderRangeActions = (kind: "spend" | "ootd", currentRange: InsightRange) =>
     rangeTabs.map((tab) => (
       <Link
@@ -87,7 +97,7 @@ export default async function InsightsPage({
       <div className="grid gap-4 lg:grid-cols-2">
         <TrendCard
           title={dict.insights.modules.spendTrend.title}
-          subtitle={dict.insights.modules.spendTrend.subtitle}
+          subtitle={spendSubtitle}
           entries={spendSummary.data.monthlySpendTrend}
           emptyText={dict.insights.empty}
           formatter={(value) => `¥${value}`}
@@ -95,7 +105,7 @@ export default async function InsightsPage({
         />
         <TrendCard
           title={dict.insights.modules.ootdTrend.title}
-          subtitle={dict.insights.modules.ootdTrend.subtitle}
+          subtitle={ootdSubtitle}
           entries={ootdSummary.data.monthlyOotdCounts}
           emptyText={dict.insights.empty}
           actions={renderRangeActions("ootd", ootdRange)}
