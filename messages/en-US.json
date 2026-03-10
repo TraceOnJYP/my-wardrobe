@@ -1,0 +1,478 @@
+{
+  "nav": {
+    "home": "Home",
+    "wardrobe": "Wardrobe",
+    "ootd": "Outfit Calendar",
+    "search": "Search",
+    "insights": "Insights",
+    "profile": "Profile"
+  },
+  "layout": {
+    "topbarTitle": "Minimal Wardrobe Management",
+    "topbarSubtitle": "",
+    "sidebarNote": "",
+    "language": "Language",
+    "addItem": "Add Item",
+    "importExcel": "Excel Import"
+  },
+  "common": {
+    "noFiles": "No images selected yet"
+  },
+  "home": {
+    "title": "Smart Wardrobe",
+    "subtitle": "",
+    "focus": {
+      "title": "Focus this week",
+      "subtitle": "Start with the most actionable wardrobe signals before deciding what to organize today.",
+      "primaryAction": "Open full insights",
+      "secondaryAction": "Open wardrobe"
+    },
+    "recent": {
+      "title": "Recent looks",
+      "subtitle": "Quickly review the latest saved outfit records."
+    },
+    "highlights": {
+      "topWornLabel": "Most worn",
+      "idleLabel": "High-value idle",
+      "recentLabel": "Updated in 30 days",
+      "wearsPrefix": "Worn ",
+      "wearsSuffix": " times",
+      "idlePrefix": "Current price ",
+      "recentSubtitle": "items were updated in the last 30 days",
+      "emptyTitle": "Not enough data yet",
+      "emptySubtitle": "Add more items and outfit records, and this area will surface the key signals automatically."
+    }
+  },
+  "wardrobe": {
+    "title": "Wardrobe",
+    "subtitle": "Search, filter, review, and add items in one place.",
+    "empty": "No items yet. Add your first piece.",
+    "noResults": "No matching items. Try adjusting the search term or filters.",
+    "newTitle": "New Item",
+    "newSubtitle": "Upload photos and save the key metadata for a searchable digital wardrobe.",
+    "detailTitle": "Item Detail",
+    "detailSubtitle": "Review and edit the full metadata of this piece, then save again.",
+    "detail": {
+      "back": "Back to list",
+      "edit": "Edit",
+      "cancel": "Cancel edit",
+      "overview": "Overview",
+      "attributes": "Attributes",
+      "usage": "Usage and preference",
+      "manualWearDays": "Manual wear days",
+      "ootdWearDays": "OOTD wear days",
+      "manualUseDays": "Manual use days",
+      "ootdUseDays": "OOTD use days",
+      "purchase": "Purchase",
+      "notes": "Notes",
+      "noNotes": "No notes yet.",
+      "unknown": "Not filled"
+    },
+    "view": {
+      "grid": "Grid",
+      "list": "List"
+    },
+    "card": {
+      "unknownBrand": "Unknown brand",
+      "noColor": "No color",
+      "matched": "Matched:",
+      "addToCandidate": "Add to today's candidates",
+      "addedToCandidate": "Added to candidates",
+      "removeFromCandidate": "Remove from candidates",
+      "brand": "Brand",
+        "category": "Type / Style",
+      "color": "Color",
+      "designElements": "Design elements",
+      "material": "Material",
+      "season": "Season",
+      "tags": "Tags",
+      "price": "Price",
+      "emptyDetails": "No more details"
+    },
+    "list": {
+      "unknownBrand": "Unknown brand",
+      "wears": "Wears",
+      "item": "Item",
+      "itemType": "Category",
+      "category": "Type",
+      "brand": "Brand",
+      "color": "Color",
+      "updatedAt": "Updated time",
+      "selected": "Selected",
+      "selectionIdle": "Enter selection mode when you need batch actions",
+      "enterSelection": "Select",
+      "selectHint": "Select multiple rows to delete them together",
+      "clearSelection": "Clear selection",
+      "deleteSelected": "Delete selected",
+      "deleting": "Deleting...",
+      "selectAll": "Select all",
+      "selectRow": "Select",
+      "subcategory": "Style",
+      "designElements": "Design elements",
+      "material": "Material",
+      "sleeveType": "Sleeve type",
+      "collarType": "Collar type",
+      "fit": "Fit",
+      "silhouette": "Silhouette",
+      "style": "Style",
+      "season": "Season",
+      "scenario": "Scenario",
+      "price": "Price",
+      "priceRange": "Price range",
+      "costPerWear": "Cost per wear",
+      "favoriteScore": "Favorite score",
+      "purchaseChannel": "Purchase channel",
+      "purchaseDate": "Purchase date",
+      "columnPicker": "Choose columns",
+      "closeColumns": "Close",
+      "sortSummary": "Sort:",
+      "clearSort": "Clear sort",
+      "defaultSort": "Unsorted",
+      "pageSize": "Per page",
+      "page": "Page",
+      "prevPage": "Previous",
+      "nextPage": "Next",
+      "typeClothing": "Clothing",
+      "typeAccessory": "Accessories",
+      "typeBag": "Bag",
+      "typeShoes": "Shoes",
+      "typeJewelry": "Jewelry",
+      "typeOther": "Other",
+      "matched": "Matched:",
+      "tags": "Tags",
+      "addToCandidate": "Add to today's candidates",
+      "addedToCandidate": "Added to candidates",
+      "removeFromCandidate": "Remove from candidates",
+      "emptyDetails": "No more details"
+    },
+    "match": {
+      "tags": "Tags"
+    },
+    "filters": {
+      "category": "Filter by type",
+      "brand": "Filter by brand",
+      "color": "Filter by color"
+    },
+    "types": {
+      "all": "All",
+      "clothing": "Clothing",
+      "accessory": "Accessories",
+      "bag": "Bags",
+      "shoes": "Shoes",
+      "jewelry": "Jewelry",
+      "other": "Other"
+    },
+    "actions": {
+      "addItem": "Add Item",
+      "importExcel": "Excel Import"
+    },
+    "modules": {
+      "manual": "Manual Entry",
+      "import": "Excel Import"
+    },
+    "form": {
+      "categories": {
+        "clothing": "Clothing",
+        "accessory": "Accessory",
+        "bag": "Bag",
+        "shoes": "Shoes",
+        "jewelry": "Jewelry"
+      },
+      "common": {
+        "tabsLabel": "Entry type",
+        "basicInfo": "Core information",
+        "styleInfo": "Style and attributes",
+        "usageInfo": "Price and usage data",
+        "extraInfo": "Purchase and preference",
+        "imagePanel": "Images and visual preview",
+        "imageHint": "Upload 1-3 clear photos. AI attribute recognition can be attached later.",
+        "imageCta": "Click to upload image",
+        "imageEmpty": "Preview will appear here after upload",
+        "notes": "Notes and outfit cues",
+        "save": "Save item",
+        "draft": "Save draft",
+        "saving": "Saving...",
+        "saveSuccess": "Item saved. This is the first API-connected submission flow.",
+        "saveError": "Save failed. Please check required fields.",
+        "required": "* only core information is required",
+        "customOption": "Custom...",
+        "customPlaceholder": "Enter ",
+        "manualWearHint": "This is a manual value outside the outfit calendar records, and it will be calculated separately from OOTD stats."
+      },
+      "fields": {
+        "clothing": ["Brand", "Style", "Color", "Design elements", "Material", "Sleeve type", "Collar type", "Fit", "Silhouette", "Style direction", "Season", "Price", "Price range", "Wear days", "Cost per wear", "Purchase year", "Purchase channel", "Item age", "Favorite score", "Tags"],
+        "accessory": ["Brand", "Type", "Style", "Color", "Design elements", "Season", "Price", "Price range", "Wear days", "Cost per wear", "Purchase year", "Purchase channel", "Favorite score"],
+        "bag": ["Brand", "Style", "Color", "Size", "Material", "Design elements", "Season", "Scenario", "Price", "Price range", "Use days", "Cost per wear", "Purchase time", "Purchase channel", "Favorite score"],
+        "shoes": ["Brand", "Style", "Color", "Design elements", "Scenario", "Season", "Price", "Price range", "Wear days", "Cost per wear", "Purchase time", "Purchase channel", "Favorite score"],
+        "jewelry": ["Brand", "Style", "Color family", "Design elements", "Price", "Price range", "Wear days", "Cost per wear", "Purchase year", "Channel", "Favorite score"]
+      },
+      "placeholders": {
+        "brand": "Brand",
+        "category": "Type",
+        "subcategory": "Style",
+        "color": "Color / color family",
+        "designElements": "Design elements, split multiple values with commas",
+        "material": "Material",
+        "sleeveType": "Sleeve type",
+        "collarType": "Collar type",
+        "fit": "Fit",
+        "silhouette": "Silhouette",
+        "style": "Style",
+        "season": "Season",
+        "tags": "Tags, split multiple values with commas",
+        "price": "Price",
+        "priceRange": "Price range",
+        "wearDays": "Wear days",
+        "useDays": "Use days",
+        "costPerWear": "Cost per wear",
+        "purchaseYear": "Purchase year",
+        "purchaseDate": "Purchase date",
+        "purchaseChannel": "Purchase channel",
+        "ageYears": "Item age",
+        "favoriteScore": "Favorite score",
+        "size": "Size",
+        "scenario": "Scenario"
+      },
+      "options": {
+        "subcategory": {
+          "clothing": ["Coat", "Shirt", "Knitwear", "Blazer", "Skirt", "Trousers"],
+          "accessory": ["Hat", "Scarf", "Belt", "Eyewear", "Gloves"],
+          "bag": ["Tote", "Shoulder bag", "Crossbody", "Clutch", "Backpack"],
+          "shoes": ["Ankle boots", "Loafers", "Sneakers", "Sandals", "Heels"],
+          "jewelry": ["Necklace", "Earrings", "Ring", "Bracelet", "Brooch"]
+        },
+        "color": ["Black", "White", "Beige", "Brown", "Gray", "Blue", "Green"],
+        "material": ["Wool", "Cotton", "Silk", "Leather", "Denim", "Polyester"],
+        "category": {
+          "clothing": ["Clothing"],
+          "accessory": ["Accessory", "Hat", "Scarf", "Eyewear"],
+          "bag": ["Bag"],
+          "shoes": ["Shoes"],
+          "jewelry": ["Jewelry"]
+        },
+        "size": ["Mini", "Small", "Medium", "Large"]
+      }
+    }
+  },
+  "ootd": {
+    "title": "Outfit Calendar",
+    "subtitle": "Browse daily looks in the calendar and add new outfits from the candidate pool.",
+    "composer": {
+      "title": "Add Today's Look",
+      "subtitle": "Pick pieces from your wardrobe and upload one hero photo. You can save up to 5 looks per day.",
+      "wearDate": "Wear date",
+      "scenario": "Scenario",
+      "notes": "Notes",
+      "image": "Outfit photo",
+      "imageHint": "Upload one main photo for the calendar and detail view.",
+      "itemPicker": "Choose wardrobe items",
+      "itemLimit": "You can save up to 5 outfit records for the same day.",
+      "saveError": "Failed to save the look. Please try again.",
+      "dailyLimit": "Remaining today",
+      "save": "Save look",
+      "saving": "Saving...",
+      "selected": "Selected",
+      "noItems": "No wardrobe items available yet. Add some items first.",
+      "search": "Search items",
+      "searchPlaceholder": "Search by brand, type, style, color, design details, material, tags, and more",
+      "recentSearches": "Recent searches",
+      "suggestions": "Suggestions",
+      "suggestionGroups": {
+        "name": "Item name",
+        "brand": "Brand",
+        "category": "Type",
+        "color": "Color",
+        "designElements": "Design elements",
+        "material": "Material",
+        "style": "Style",
+        "scenario": "Scenario",
+        "season": "Season",
+        "tags": "Tags"
+      },
+      "noSearchResults": "No wardrobe items matched the current search.",
+      "prevPage": "Previous",
+      "nextPage": "Next",
+      "page": "Page",
+      "selectedItems": "Selected items",
+      "candidateItems": "Candidate items",
+      "addToCandidate": "Add to today's candidates",
+      "addedToCandidate": "Added to candidates",
+      "removeFromCandidate": "Remove from candidates",
+      "detailFields": {
+        "brand": "Brand",
+        "category": "Type",
+        "color": "Color",
+        "designElements": "Design elements",
+        "material": "Material",
+        "season": "Season",
+        "tags": "Tags",
+        "price": "Price",
+        "empty": "No more details"
+      }
+    },
+    "calendar": {
+      "title": "Outfit Calendar",
+      "subtitle": "Scan the month at a glance, then inspect the selected day in the side panel.",
+      "previousMonth": "Previous",
+      "nextMonth": "Next",
+      "todayAction": "Today",
+      "today": "Today",
+      "noLooks": "Empty",
+      "more": "more",
+      "selectedDay": "Selected day",
+      "selectedDayEmpty": "No looks saved for this day yet",
+      "selectedDayHint": "Pick a day from the calendar to inspect its looks.",
+      "looksCount": "looks",
+      "openDetail": "Open look detail",
+      "dailyLimitHint": "Up to 5 looks per day",
+      "fullDay": "5 looks saved today",
+      "fullDayHint": "This day has reached the limit and cannot add another look.",
+      "noImage": "No photo",
+      "createToday": "Add today's look",
+      "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    },
+    "detail": {
+      "title": "OOTD Detail",
+      "subtitle": "Review the hero photo, scenario, and linked wardrobe items for this look.",
+      "back": "Back to calendar",
+      "edit": "Edit look",
+      "delete": "Delete look",
+      "deleting": "Deleting...",
+      "select": "Select",
+      "clearSelection": "Clear selection",
+      "deleteSelected": "Delete selected",
+      "selectedCount": "Selected",
+      "moveUp": "Move look up",
+      "moveDown": "Move look down",
+      "itemCount": "items",
+      "cancel": "Cancel",
+      "editTitle": "Edit Look",
+      "editSubtitle": "Update the date, scenario, photo, and linked items, then save again.",
+      "saveEdit": "Save changes",
+      "recordLabel": "OOTD",
+      "daily": "Daily",
+      "overview": "Overview",
+      "date": "Date",
+      "scenario": "Scenario",
+      "count": "Items",
+      "items": "items",
+      "notes": "Notes",
+      "noNotes": "No notes for this look yet.",
+      "itemsTitle": "Linked Items",
+      "itemsSubtitle": "Open any item to jump into its wardrobe detail page.",
+      "viewItem": "View item detail"
+    },
+    "candidates": {
+      "entry": "Outfit Candidates",
+      "pageTitle": "Outfit Candidates",
+      "pageSubtitle": "Collect pieces you may want to wear today, then build the final look from that short list.",
+      "title": "Candidate Pool",
+      "subtitle": "Items added from wardrobe and OOTD search results are collected here.",
+      "empty": "No candidate items yet. Add some from wardrobe or the OOTD search results first.",
+      "back": "Back to Outfit Calendar",
+      "clear": "Clear pool",
+      "countPrefix": "Current candidates",
+      "remove": "Remove"
+    },
+    "timeline": {
+      "daily": "Daily",
+      "items": "items",
+      "notes": "Notes",
+      "noNotes": "No notes saved for this day.",
+      "previewItems": "Items that day"
+    }
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search by brand, color, category, type, or style",
+    "action": "Search",
+    "recent": "Recent searches",
+    "filtersPlaceholder": "This area will host combinational filters for brand, color, season, and style."
+  },
+  "insights": {
+    "title": "Insights",
+    "subtitle": "Understand your wardrobe through structure, spend, wear frequency, and monthly outfit activity.",
+    "empty": "There is not enough data to generate insights yet.",
+    "cards": {
+      "items": "Items",
+      "spend": "Spend",
+      "ootd": "OOTD",
+      "idle": "Idle"
+    },
+    "modules": {
+      "spend": {
+        "title": "Spend by category",
+        "subtitle": "See where most of your wardrobe budget goes."
+      },
+      "spendTrend": {
+        "title": "Monthly spend trend",
+        "subtitle": "Track spend changes over the last 6 months based on purchase dates."
+      },
+      "ootdTrend": {
+        "title": "Monthly outfit count",
+        "subtitle": "Outfit activity across the last 6 months."
+      },
+      "category": {
+        "title": "Category breakdown",
+        "subtitle": "How your wardrobe is distributed across categories."
+      },
+      "color": {
+        "title": "Color breakdown",
+        "subtitle": "The colors that appear most often in your wardrobe."
+      },
+      "brand": {
+        "title": "Brand breakdown",
+        "subtitle": "Brands you buy or keep most often."
+      },
+      "topWorn": {
+        "title": "Top 10 most worn",
+        "subtitle": "Your highest-frequency pieces."
+      },
+      "idle": {
+        "title": "Top 10 idle items",
+        "subtitle": "Pieces to review first when decluttering."
+      },
+      "costPerWear": {
+        "title": "Top 10 cost per wear",
+        "subtitle": "Pieces with the highest effective cost per wear."
+      }
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "syncStatus": "0 queued · 0 conflicts",
+    "preferencePlaceholder": "This area will host language, sync, and account preferences."
+  },
+  "import": {
+    "title": "Excel Import",
+    "subtitle": "Batch import wardrobe items. Download the template first, then fill each worksheet and upload it.",
+    "uploadTitle": "Upload import file",
+    "uploadDescription": "Upload the Excel workbook and an optional image ZIP together. The system first matches images by image name or row identifier, then imports everything in one step.",
+    "templateTitle": "Import template",
+    "templateDescription": "The template mirrors your current wardrobe workbook and includes sheets for clothing, accessories, bags, shoes, and jewelry.",
+    "downloadTemplate": "Download template",
+    "goManual": "Switch to manual add",
+    "templateFields": "Suggested clothing headers: id, image_name, brand, category, type, style, color, design elements, material, sleeve type, collar type, fit, silhouette, style direction, season, price, price range, wear days, cost per wear, purchase year, purchase channel, item age, favorite score, outfit pairing. The image ZIP matches `image_name` first, then falls back to `id.ext`.",
+    "panel": {
+      "chooseFile": "Choose file",
+      "chooseImagesZip": "Choose image ZIP",
+      "upload": "Upload and parse",
+      "parsing": "Parsing...",
+      "import": "Import to wardrobe",
+      "importing": "Importing...",
+      "importSuccess": "Imported successfully:",
+      "noFile": "No Excel file selected yet",
+      "noImagesZip": "No image ZIP selected (optional)",
+      "previewTitle": "Header preview",
+      "rows": "rows",
+      "images": "images",
+      "matchedImages": "rows matched with images",
+      "unsupported": "Failed to parse file",
+      "headerAliases": {
+        "大类": "Category",
+        "类别": "Type",
+        "小类": "Style"
+      }
+    }
+  }
+}

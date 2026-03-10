@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserLocale {
+  zh_CN
+  en_US
+}
+
+enum ItemStatus {
+  active
+  archived
+}
+
+model User {
+  id            String         @id @default(uuid()) @db.Uuid
+  email         String?        @unique @db.VarChar(320)
+  displayName   String?        @db.VarChar(120)
+  locale        UserLocale     @default(zh_CN)
+  timezone      String         @default("UTC") @db.VarChar(64)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?
+  wardrobeItems WardrobeItem[]
+  ootdRecords   OotdRecord[]
+
+  @@map("users")
+}
+
+model WardrobeItem {
+  id              String      @id @default(uuid()) @db.Uuid
+  userId          String      @db.Uuid
+  clientId        String?     @db.Uuid
+  itemType        String      @db.VarChar(30)
+  name            String      @db.VarChar(160)
+  brand           String?     @db.VarChar(120)
+  category        String      @db.VarChar(60)
+  subcategory     String?     @db.VarChar(60)
+  color           String?     @db.VarChar(60)
+  designElements  String?
+  material        String?     @db.VarChar(120)
+  sleeveType      String?     @db.VarChar(60)
+  collarType      String?     @db.VarChar(60)
+  fit             String?     @db.VarChar(60)
+  silhouette      String?     @db.VarChar(60)
+  style           String?     @db.VarChar(60)
+  season          String[]    @default([])
+  scenario        String?     @db.VarChar(80)
+  size            String?     @db.VarChar(40)
+  tags            String[]    @default([])
+  price           Decimal?    @db.Decimal(12, 2)
+  priceRange      String?     @db.VarChar(40)
+  wearDays        Int         @default(0)
+  useDays         Int         @default(0)
+  costPerWear     Decimal     @default(0) @db.Decimal(12, 2)
+  purchaseYear    Int?
+  purchaseDate    DateTime?   @db.Date
+  purchaseChannel String?     @db.VarChar(120)
+  ageYears        Decimal?    @db.Decimal(6, 2)
+  favoriteScore   Int         @default(0)
+  notes           String?
+  imageUrl        String?     @db.VarChar(500)
+  version         Int         @default(1)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  deletedAt       DateTime?
+  user            User        @relation(fields: [userId], references: [id])
+  ootdItems       OotdItem[]
+
+  @@unique([userId, clientId])
+  @@index([userId, category])
+  @@map("wardrobe_items")
+}
+
+model OotdRecord {
+  id         String     @id @default(uuid()) @db.Uuid
+  userId     String     @db.Uuid
+  clientId   String?    @db.Uuid
+  wearDate   DateTime   @db.Date
+  displayOrder Int      @default(0)
+  scenario   String?    @db.VarChar(80)
+  notes      String?
+  imageUrl   String?    @db.VarChar(500)
+  version    Int        @default(1)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  deletedAt  DateTime?
+  user       User       @relation(fields: [userId], references: [id])
+  ootdItems  OotdItem[]
+
+  @@unique([userId, clientId])
+  @@index([userId, wearDate])
+  @@index([userId, wearDate, displayOrder])
+  @@map("ootd_records")
+}
+
+model OotdItem {
+  id             String       @id @default(uuid()) @db.Uuid
+  ootdRecordId   String       @db.Uuid
+  wardrobeItemId String       @db.Uuid
+  itemOrder      Int          @default(0)
+  createdAt      DateTime     @default(now())
+  ootdRecord     OotdRecord   @relation(fields: [ootdRecordId], references: [id])
+  wardrobeItem   WardrobeItem @relation(fields: [wardrobeItemId], references: [id])
+
+  @@unique([ootdRecordId, wardrobeItemId])
+  @@map("ootd_items")
+}
