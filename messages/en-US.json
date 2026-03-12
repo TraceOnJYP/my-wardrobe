@@ -12,6 +12,8 @@
     "topbarSubtitle": "",
     "sidebarNote": "",
     "language": "Language",
+    "login": "Sign in",
+    "account": "Account",
     "addItem": "Add Item",
     "importExcel": "Excel Import"
   },
@@ -440,8 +442,45 @@
   },
   "profile": {
     "title": "Profile",
+    "loginRequired": "Sign in to manage account, sync settings, and language preferences.",
+    "loginAction": "Open login",
+    "providersTitle": "Linked sign-in methods",
+    "noProviders": "You are still using demo mode and no production sign-in provider is linked yet.",
+    "signOut": "Sign out",
+    "providerLabels": {
+      "google": "Google",
+      "apple": "Apple",
+      "wechat": "WeChat"
+    },
     "syncStatus": "0 queued · 0 conflicts",
     "preferencePlaceholder": "This area will host language, sync, and account preferences."
+  },
+  "auth": {
+    "login": {
+      "eyebrow": "Smart Wardrobe",
+      "title": "Sign in to your wardrobe account",
+      "subtitle": "Use Google, Apple, or the upcoming WeChat login to access your personal wardrobe, outfits, and analytics data.",
+      "privacy": "Sign-in is used to identify your data space and keep sessions across devices. Account linking and richer privacy settings will be added later.",
+      "featuresTitle": "After you sign in",
+      "features": ["Save wardrobe items and images", "Record and sync your outfit calendar", "Review analytics and history across devices"],
+      "providerStatus": {
+        "enabled": "Ready",
+        "notConfigured": "Needs setup",
+        "planned": "Planned"
+      }
+    },
+    "error": {
+      "title": "Sign-in failed",
+      "subtitle": "The auth flow is not ready yet, or the third-party provider is not fully configured. Try again later, or keep using the current demo mode for now.",
+      "retry": "Back to login",
+      "back": "Back to home"
+    },
+    "required": {
+      "title": "Sign in to continue",
+      "action": "Continue with sign-in",
+      "wardrobeSubtitle": "Adding items, uploading images, and Excel import require sign-in before the data can be saved into your personal wardrobe space.",
+      "ootdSubtitle": "Saving outfits, uploading outfit photos, and managing the candidate pool require sign-in before the data can sync into your outfit calendar."
+    }
   },
   "import": {
     "title": "Excel Import",

@@ -1,12 +1,12 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { badRequest, ok, unauthorized } from "@/lib/api/response";
-import { getSessionUser } from "@/lib/auth/session";
+import { requireSessionUser } from "@/lib/auth/session";
 
 const uploadsDir = path.join(process.cwd(), "public", "uploads", "wardrobe");
 
 export async function POST(request: Request) {
-  const user = await getSessionUser();
+  const user = await requireSessionUser();
   if (!user) return unauthorized();
 
   const formData = await request.formData();

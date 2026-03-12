@@ -1,9 +1,12 @@
+import { AuthRequiredCard } from "@/components/auth/auth-required-card";
 import Link from "next/link";
 import { ExcelImportPanel } from "@/components/import/excel-import-panel";
 import { getDictionary } from "@/features/i18n/get-dictionary";
 import { SectionHeader } from "@/components/shared/section-header";
 import { ItemForm } from "@/components/wardrobe/item-form";
 import type { Locale } from "@/features/i18n/routing";
+import { isAuthConfigured } from "@/lib/auth/provider-config";
+import { getOptionalCurrentUser } from "@/lib/auth/current-user";
 
 export default async function NewWardrobeItemPage({
   params,
@@ -15,6 +18,22 @@ export default async function NewWardrobeItemPage({
   const { locale } = await params;
   const { mode = "manual" } = await searchParams;
   const dict = await getDictionary(locale);
+  const currentUser = await getOptionalCurrentUser();
+
+  if (isAuthConfigured() && !currentUser) {
+    return (
+      <div className="space-y-6">
+        <SectionHeader title={dict.wardrobe.newTitle} subtitle={dict.wardrobe.newSubtitle} />
+        <AuthRequiredCard
+          action={dict.auth.required.action}
+          callbackUrl={`/${locale}/wardrobe/new?mode=${mode}`}
+          locale={locale}
+          subtitle={dict.auth.required.wardrobeSubtitle}
+          title={dict.auth.required.title}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

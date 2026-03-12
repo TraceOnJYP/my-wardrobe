@@ -1,0 +1,3 @@
+ALTER TABLE "accounts" ALTER COLUMN "updatedAt" DROP DEFAULT;
+
+ALTER TABLE "sessions" ALTER COLUMN "updatedAt" DROP DEFAULT;

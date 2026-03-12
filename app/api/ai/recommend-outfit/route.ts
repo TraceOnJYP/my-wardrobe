@@ -1,10 +1,10 @@
 import { badRequest, ok, unauthorized } from "@/lib/api/response";
-import { getSessionUser } from "@/lib/auth/session";
+import { requireSessionUser } from "@/lib/auth/session";
 import { recommendOutfitSchema } from "@/lib/validations/ai";
 import { aiService } from "@/server/services/ai.service";
 
 export async function POST(request: Request) {
-  const user = await getSessionUser();
+  const user = await requireSessionUser();
   if (!user) return unauthorized();
 
   const json = await request.json();

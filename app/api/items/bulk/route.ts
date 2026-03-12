@@ -1,9 +1,9 @@
 import { badRequest, ok, unauthorized } from "@/lib/api/response";
-import { getSessionUser } from "@/lib/auth/session";
+import { requireSessionUser } from "@/lib/auth/session";
 import { wardrobeService } from "@/server/services/wardrobe.service";
 
 export async function DELETE(request: Request) {
-  const user = await getSessionUser();
+  const user = await requireSessionUser();
   if (!user) return unauthorized();
 
   const json = await request.json().catch(() => null);

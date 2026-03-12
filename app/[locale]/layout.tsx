@@ -8,6 +8,8 @@ import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { Topbar } from "@/components/layout/topbar";
 import { getDictionary } from "@/features/i18n/get-dictionary";
 import { locales, type Locale } from "@/features/i18n/routing";
+import { getOptionalCurrentUser } from "@/lib/auth/current-user";
+import { isAuthConfigured } from "@/lib/auth/provider-config";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -28,7 +30,19 @@ export default async function LocaleLayout({
 
   const dict = await getDictionary(locale as Locale);
   const cookieStore = await cookies();
+  const currentUser = await getOptionalCurrentUser();
   const candidateCount = Number(cookieStore.get("smart-wardrobe-ootd-candidate-count")?.value ?? "0");
+  const showAuthEntry = isAuthConfigured();
+  const accountHref = showAuthEntry
+    ? currentUser
+      ? `/${locale}/profile`
+      : `/${locale}/login`
+    : `/${locale}/profile`;
+  const accountLabel = showAuthEntry
+    ? currentUser
+      ? dict.layout.account
+      : dict.layout.login
+    : dict.layout.account;
 
   return (
     <AppShell>
@@ -76,6 +90,8 @@ export default async function LocaleLayout({
             subtitle={dict.layout.topbarSubtitle}
             candidateLabel={dict.ootd.candidates.entry}
             candidateCount={Number.isNaN(candidateCount) ? 0 : candidateCount}
+            accountHref={accountHref}
+            accountLabel={accountLabel}
           />
           <div className="grid min-w-0 gap-4 lg:min-h-0">{children}</div>
         </main>

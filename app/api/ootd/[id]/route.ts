@@ -1,5 +1,5 @@
 import { badRequest, ok, unauthorized } from "@/lib/api/response";
-import { getSessionUser } from "@/lib/auth/session";
+import { getSessionUser, requireSessionUser } from "@/lib/auth/session";
 import { createOotdSchema } from "@/lib/validations/ootd";
 import { ootdService } from "@/server/services/ootd.service";
 import { z } from "zod";
@@ -30,7 +30,7 @@ export async function PUT(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const user = await getSessionUser();
+  const user = await requireSessionUser();
   if (!user) return unauthorized();
 
   const json = await request.json();
@@ -58,7 +58,7 @@ export async function DELETE(
   _request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const user = await getSessionUser();
+  const user = await requireSessionUser();
   if (!user) return unauthorized();
 
   try {
@@ -74,7 +74,7 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const user = await getSessionUser();
+  const user = await requireSessionUser();
   if (!user) return unauthorized();
 
   const json = await request.json();

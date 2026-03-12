@@ -12,6 +12,8 @@
     "topbarSubtitle": "",
     "sidebarNote": "",
     "language": "语言",
+    "login": "登录",
+    "account": "我的",
     "addItem": "添加衣物",
     "importExcel": "Excel 导入"
   },
@@ -440,8 +442,45 @@
   },
   "profile": {
     "title": "个人设置",
+    "loginRequired": "登录后可管理账号信息、同步设置和语言偏好。",
+    "loginAction": "去登录",
+    "providersTitle": "已绑定登录方式",
+    "noProviders": "当前仍在使用本地演示模式，尚未绑定正式登录方式。",
+    "signOut": "退出登录",
+    "providerLabels": {
+      "google": "Google",
+      "apple": "Apple",
+      "wechat": "微信"
+    },
     "syncStatus": "0 条待同步 · 0 条冲突",
     "preferencePlaceholder": "这里将放置语言、同步与个人偏好设置。"
+  },
+  "auth": {
+    "login": {
+      "eyebrow": "Smart Wardrobe",
+      "title": "登录到你的衣橱账户",
+      "subtitle": "使用 Google、Apple 或后续接入的微信登录，进入你的专属衣橱、穿搭和分析数据。",
+      "privacy": "登录仅用于识别你的衣橱数据空间与跨设备会话，后续会支持账号绑定与更完整的隐私设置。",
+      "featuresTitle": "登录后你可以",
+      "features": ["保存衣物与图片", "记录并同步穿搭日历", "跨设备查看分析与历史记录"],
+      "providerStatus": {
+        "enabled": "可用",
+        "notConfigured": "待配置",
+        "planned": "规划中"
+      }
+    },
+    "error": {
+      "title": "登录暂时失败",
+      "subtitle": "当前认证流程未完成，或第三方登录配置还未补齐。你可以稍后重试，或先继续使用当前本地演示模式。",
+      "retry": "返回登录页",
+      "back": "返回首页"
+    },
+    "required": {
+      "title": "登录后继续",
+      "action": "登录后继续",
+      "wardrobeSubtitle": "新增衣物、上传图片和 Excel 导入都需要登录后才能保存到你的专属衣橱空间。",
+      "ootdSubtitle": "保存穿搭、上传穿搭照片和管理候选池都需要登录后才能同步到你的穿搭日历。"
+    }
   },
   "import": {
     "title": "Excel 导入",

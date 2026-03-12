@@ -3,7 +3,7 @@ import path from "node:path";
 import JSZip from "jszip";
 import * as XLSX from "xlsx";
 import { badRequest, ok, unauthorized } from "@/lib/api/response";
-import { getSessionUser } from "@/lib/auth/session";
+import { requireSessionUser } from "@/lib/auth/session";
 import type { CreateWardrobeItemDto } from "@/types/dto";
 import { wardrobeService } from "@/server/services/wardrobe.service";
 
@@ -358,7 +358,7 @@ async function persistImage(entry: ImageArchiveEntry) {
 }
 
 export async function POST(request: Request) {
-  const user = await getSessionUser();
+  const user = await requireSessionUser();
   if (!user) return unauthorized();
 
   const formData = await request.formData();

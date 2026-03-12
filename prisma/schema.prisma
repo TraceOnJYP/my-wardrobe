@@ -12,24 +12,82 @@ enum UserLocale {
   en_US
 }
 
+enum AuthProvider {
+  google
+  apple
+  wechat
+}
+
 enum ItemStatus {
   active
   archived
 }
 
 model User {
-  id            String         @id @default(uuid()) @db.Uuid
-  email         String?        @unique @db.VarChar(320)
-  displayName   String?        @db.VarChar(120)
-  locale        UserLocale     @default(zh_CN)
-  timezone      String         @default("UTC") @db.VarChar(64)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  deletedAt     DateTime?
-  wardrobeItems WardrobeItem[]
-  ootdRecords   OotdRecord[]
+  id                  String         @id @default(uuid()) @db.Uuid
+  name                String?        @db.VarChar(120)
+  email               String?        @unique @db.VarChar(320)
+  emailVerified       DateTime?
+  image               String?        @db.VarChar(500)
+  displayName         String?        @db.VarChar(120)
+  avatarUrl           String?        @db.VarChar(500)
+  locale              UserLocale     @default(zh_CN)
+  timezone            String         @default("UTC") @db.VarChar(64)
+  onboardingCompleted Boolean        @default(false)
+  lastLoginAt         DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  deletedAt           DateTime?
+  wardrobeItems       WardrobeItem[]
+  ootdRecords         OotdRecord[]
+  accounts            Account[]
+  sessions            Session[]
 
   @@map("users")
+}
+
+model Account {
+  id                String       @id @default(uuid()) @db.Uuid
+  userId            String       @db.Uuid
+  type              String       @db.VarChar(40)
+  provider          AuthProvider
+  providerAccountId String       @db.VarChar(191)
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?      @db.VarChar(40)
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String    @id @default(uuid()) @db.Uuid
+  sessionToken String    @unique @db.VarChar(191)
+  userId       String    @db.Uuid
+  expires      DateTime
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String   @db.VarChar(191)
+  token      String   @unique @db.VarChar(191)
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
 }
 
 model WardrobeItem {

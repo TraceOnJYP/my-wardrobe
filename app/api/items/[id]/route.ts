@@ -1,5 +1,5 @@
 import { badRequest, notFound, ok, unauthorized } from "@/lib/api/response";
-import { getSessionUser } from "@/lib/auth/session";
+import { getSessionUser, requireSessionUser } from "@/lib/auth/session";
 import { createWardrobeItemSchema } from "@/lib/validations/item";
 import { wardrobeService } from "@/server/services/wardrobe.service";
 
@@ -21,7 +21,7 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const user = await getSessionUser();
+  const user = await requireSessionUser();
   if (!user) return unauthorized();
 
   const { id } = await params;
@@ -46,7 +46,7 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const user = await getSessionUser();
+  const user = await requireSessionUser();
   if (!user) return unauthorized();
 
   const { id } = await params;
