@@ -120,6 +120,7 @@ export const authService = {
           data: {
             userId,
             clientId: record.clientId,
+            recordType: record.recordType,
             wearDate: record.wearDate,
             displayOrder: record.displayOrder,
             scenario: record.scenario,

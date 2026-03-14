@@ -90,7 +90,7 @@ export default async function WardrobePage({
   const { locale } = await params;
   const {
     view = "list",
-    type = "all",
+    type = "clothing",
     q = "",
     category = "",
     brand = "",
@@ -123,13 +123,13 @@ export default async function WardrobePage({
   };
   const searchGroups = buildSearchGroups(searchBaseItems.data, locale);
   const typeOptions = [
-    { value: "all", label: dict.wardrobe.types.all },
     { value: "clothing", label: dict.wardrobe.types.clothing },
     { value: "accessory", label: dict.wardrobe.types.accessory },
     { value: "bag", label: dict.wardrobe.types.bag },
     { value: "shoes", label: dict.wardrobe.types.shoes },
     { value: "jewelry", label: dict.wardrobe.types.jewelry },
     { value: "other", label: dict.wardrobe.types.other },
+    { value: "all", label: dict.wardrobe.types.all },
   ];
 
   return (

@@ -17,6 +17,7 @@ export function SidebarNav({ locale, dict }: SidebarNavProps) {
     { href: `/${locale}`, label: dict.home },
     { href: `/${locale}/wardrobe`, label: dict.wardrobe },
     { href: `/${locale}/ootd`, label: dict.ootd },
+    { href: `/${locale}/looks`, label: dict.looks },
     { href: `/${locale}/insights`, label: dict.insights },
     { href: `/${locale}/profile`, label: dict.profile },
   ];

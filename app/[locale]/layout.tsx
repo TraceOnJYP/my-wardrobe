@@ -1,3 +1,4 @@
+import { AuthSuccessBanner } from "@/components/auth/auth-success-banner";
 import type { ReactNode } from "react";
 import { cookies } from "next/headers";
 import Link from "next/link";
@@ -93,7 +94,14 @@ export default async function LocaleLayout({
             accountHref={accountHref}
             accountLabel={accountLabel}
           />
-          <div className="grid min-w-0 gap-4 lg:min-h-0">{children}</div>
+          <div className="grid min-w-0 gap-4 lg:min-h-0">
+            <AuthSuccessBanner
+              title={dict.auth.success.title}
+              description={dict.auth.success.description}
+              dismissLabel={dict.auth.success.dismiss}
+            />
+            {children}
+          </div>
         </main>
       </div>
     </AppShell>

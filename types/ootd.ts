@@ -3,6 +3,7 @@ import type { WardrobeItem } from "@/types/item";
 export interface OotdRecord {
   id: string;
   wearDate: string;
+  recordType?: "daily" | "look";
   displayOrder?: number;
   scenario?: string;
   notes?: string;

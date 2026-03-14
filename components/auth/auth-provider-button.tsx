@@ -4,6 +4,14 @@ import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import type { AuthProviderId, LoginProviderConfig } from "@/lib/auth/provider-config";
 
+function withAuthSuccessParam(callbackUrl: string) {
+  const [path, queryString = ""] = callbackUrl.split("?");
+  const params = new URLSearchParams(queryString);
+  params.set("auth", "success");
+  const nextQuery = params.toString();
+  return nextQuery ? `${path}?${nextQuery}` : path;
+}
+
 export function AuthProviderButton({
   provider,
   locale,
@@ -37,7 +45,7 @@ export function AuthProviderButton({
     <Button
       className="w-full justify-between rounded-[24px] px-5 py-4 text-left text-sm font-semibold"
       onClick={() => {
-        void signIn(provider.id, { callbackUrl });
+        void signIn(provider.id, { callbackUrl: withAuthSuccessParam(callbackUrl) });
       }}
       type="button"
     >

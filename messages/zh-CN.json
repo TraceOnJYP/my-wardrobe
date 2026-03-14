@@ -3,6 +3,7 @@
     "home": "首页",
     "wardrobe": "衣橱",
     "ootd": "穿搭日历",
+    "looks": "穿搭列表",
     "search": "搜索",
     "insights": "分析",
     "profile": "我的"
@@ -365,7 +366,7 @@
       "viewItem": "查看衣物详情"
     },
     "candidates": {
-      "entry": "穿搭候选",
+      "entry": "今日穿搭",
       "pageTitle": "穿搭候选",
       "pageSubtitle": "把衣橱里暂时想搭配的单品放进候选池，再从候选里组合今天的穿搭。",
       "title": "候选池",
@@ -383,6 +384,33 @@
       "noNotes": "当天没有填写备注。",
       "previewItems": "当天单品"
     }
+  },
+  "looks": {
+    "title": "穿搭列表",
+    "subtitle": "收藏你喜欢的穿搭组合，并在需要时快速加入到某一天的穿搭日历。",
+    "create": "新增穿搭组合",
+    "select": "选择",
+    "clearSelection": "取消选择",
+    "selectedCount": "已选择",
+    "addToDay": "添加到某一天",
+    "addingToDay": "添加中...",
+    "addError": "添加失败，请检查当天是否已经达到 5 套上限。",
+    "wearDate": "添加日期",
+    "empty": "还没有收藏的穿搭组合，先新增一套吧。",
+    "dailyFallback": "常用穿搭",
+    "items": "个单品",
+    "noNotes": "暂无备注",
+    "back": "返回穿搭列表",
+    "newTitle": "新增穿搭组合",
+    "newSubtitle": "复用今日穿搭的搭配方式，先保存一套你喜欢的固定组合。",
+    "detailTitle": "穿搭组合详情",
+    "detailSubtitle": "查看这套收藏穿搭的主图、备注和关联单品。",
+    "editTitle": "编辑穿搭组合",
+    "editSubtitle": "修改这套收藏穿搭的场景、备注、照片和关联单品。",
+    "edit": "编辑穿搭组合",
+    "save": "保存穿搭组合",
+    "saveEdit": "保存编辑",
+    "itemLimit": "这套穿搭组合会保存到你的穿搭列表。"
   },
   "search": {
     "title": "搜索",
@@ -480,6 +508,11 @@
       "action": "登录后继续",
       "wardrobeSubtitle": "新增衣物、上传图片和 Excel 导入都需要登录后才能保存到你的专属衣橱空间。",
       "ootdSubtitle": "保存穿搭、上传穿搭照片和管理候选池都需要登录后才能同步到你的穿搭日历。"
+    },
+    "success": {
+      "title": "登录成功",
+      "description": "若检测到本地演示数据，系统已自动导入当前账号。",
+      "dismiss": "知道了"
     }
   },
   "import": {

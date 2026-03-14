@@ -3,6 +3,7 @@
     "home": "Home",
     "wardrobe": "Wardrobe",
     "ootd": "Outfit Calendar",
+    "looks": "Lookbook",
     "search": "Search",
     "insights": "Insights",
     "profile": "Profile"
@@ -365,7 +366,7 @@
       "viewItem": "View item detail"
     },
     "candidates": {
-      "entry": "Outfit Candidates",
+      "entry": "Today's Outfit",
       "pageTitle": "Outfit Candidates",
       "pageSubtitle": "Collect pieces you may want to wear today, then build the final look from that short list.",
       "title": "Candidate Pool",
@@ -383,6 +384,33 @@
       "noNotes": "No notes saved for this day.",
       "previewItems": "Items that day"
     }
+  },
+  "looks": {
+    "title": "Lookbook",
+    "subtitle": "Save favorite outfit combinations and add them into any day when needed.",
+    "create": "New look",
+    "select": "Select",
+    "clearSelection": "Clear selection",
+    "selectedCount": "Selected",
+    "addToDay": "Add to a day",
+    "addingToDay": "Adding...",
+    "addError": "Failed to add. Check whether this day has already reached the 5-look limit.",
+    "wearDate": "Date",
+    "empty": "No saved looks yet. Create one first.",
+    "dailyFallback": "Favorite look",
+    "items": "items",
+    "noNotes": "No notes",
+    "back": "Back to lookbook",
+    "newTitle": "New Look",
+    "newSubtitle": "Reuse the same composition flow as today's outfit, but save it as a favorite combination.",
+    "detailTitle": "Look Detail",
+    "detailSubtitle": "Review the hero photo, notes, and linked items for this saved look.",
+    "editTitle": "Edit Look",
+    "editSubtitle": "Update the scenario, notes, photo, and linked items for this saved look.",
+    "edit": "Edit look",
+    "save": "Save look",
+    "saveEdit": "Save changes",
+    "itemLimit": "This look will be saved in your lookbook."
   },
   "search": {
     "title": "Search",
@@ -480,6 +508,11 @@
       "action": "Continue with sign-in",
       "wardrobeSubtitle": "Adding items, uploading images, and Excel import require sign-in before the data can be saved into your personal wardrobe space.",
       "ootdSubtitle": "Saving outfits, uploading outfit photos, and managing the candidate pool require sign-in before the data can sync into your outfit calendar."
+    },
+    "success": {
+      "title": "Signed in successfully",
+      "description": "If demo data was detected locally, it has been imported into your current account automatically.",
+      "dismiss": "Dismiss"
     }
   },
   "import": {

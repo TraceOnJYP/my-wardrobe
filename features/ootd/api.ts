@@ -8,6 +8,7 @@ function buildSampleRecords(locale: Locale): OotdRecord[] {
     {
       id: "33333333-3333-3333-3333-333333333333",
       wearDate: "2026-03-01",
+      recordType: "daily",
       scenario: locale === "zh-CN" ? "上班" : "Work",
       itemIds: ["11111111-1111-1111-1111-111111111111"],
       itemTitles: [locale === "zh-CN" ? "黑色羊毛大衣" : "Black Wool Coat"],
@@ -28,20 +29,23 @@ function buildSampleRecords(locale: Locale): OotdRecord[] {
   ];
 }
 
-export async function getOotdRecords(locale: Locale) {
+export async function getOotdRecords(locale: Locale, recordType: "daily" | "look" = "daily") {
   try {
     const user = await getSessionUser();
     if (!user) {
-      return { data: buildSampleRecords(locale) };
+      return { data: recordType === "daily" ? buildSampleRecords(locale) : [] };
     }
 
-    const records = await ootdService.listRecords({ userId: user.id });
+    const records =
+      recordType === "daily"
+        ? await ootdService.listRecords({ userId: user.id })
+        : await ootdService.listLooks({ userId: user.id });
     if (records.length === 0) {
-      return { data: buildSampleRecords(locale) };
+      return { data: recordType === "daily" ? buildSampleRecords(locale) : [] };
     }
 
     return { data: records };
   } catch {
-    return { data: buildSampleRecords(locale) };
+    return { data: recordType === "daily" ? buildSampleRecords(locale) : [] };
   }
 }

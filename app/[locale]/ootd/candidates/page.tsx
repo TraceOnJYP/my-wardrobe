@@ -4,6 +4,7 @@ import { OotdCandidateBuilder } from "@/components/ootd/ootd-candidate-builder";
 import { SectionHeader } from "@/components/shared/section-header";
 import { getDictionary } from "@/features/i18n/get-dictionary";
 import { getOotdRecords } from "@/features/ootd/api";
+import { getItems } from "@/features/wardrobe/api";
 import type { Locale } from "@/features/i18n/routing";
 import { getOptionalCurrentUser } from "@/lib/auth/current-user";
 import { isAuthConfigured } from "@/lib/auth/provider-config";
@@ -43,7 +44,7 @@ export default async function OotdCandidatesPage({
     );
   }
 
-  const records = await getOotdRecords(locale);
+  const [records, wardrobe] = await Promise.all([getOotdRecords(locale), getItems(locale)]);
 
   return (
     <div className="space-y-6">
@@ -59,6 +60,7 @@ export default async function OotdCandidatesPage({
       <OotdCandidateBuilder
         locale={locale}
         records={records.data}
+        wardrobeItems={wardrobe.data}
         initialWearDate={day}
         labels={{ ...dict.ootd.candidates, composer: dict.ootd.composer }}
       />

@@ -114,6 +114,8 @@ export function OotdComposer({
   selectedIds: controlledSelectedIds,
   onSelectedIdsChange,
   showItemPicker = true,
+  recordType = "daily",
+  showWearDate = true,
 }: {
   locale: string;
   wardrobeItems: WardrobeItem[];
@@ -170,6 +172,8 @@ export function OotdComposer({
   selectedIds?: string[];
   onSelectedIdsChange?: (ids: string[]) => void;
   showItemPicker?: boolean;
+  recordType?: "daily" | "look";
+  showWearDate?: boolean;
 }) {
   const router = useRouter();
   const today = new Date().toISOString().slice(0, 10);
@@ -249,7 +253,7 @@ export function OotdComposer({
   };
 
   const dailyCount = useMemo(
-    () => records.filter((record) => record.wearDate === wearDate).length,
+    () => records.filter((record) => record.recordType !== "look" && record.wearDate === wearDate).length,
     [records, wearDate],
   );
   const remaining = Math.max(0, 5 - dailyCount);
@@ -355,7 +359,7 @@ export function OotdComposer({
       return;
     }
 
-    if (remaining === 0) {
+    if (recordType === "daily" && remaining === 0) {
       setSubmitErrors({ scenario: false, items: false, save: true });
       setSaveErrorMessage(labels.itemLimit);
       return;
@@ -391,6 +395,7 @@ export function OotdComposer({
         },
         body: JSON.stringify({
           wearDate,
+          recordType,
           scenario: scenario || undefined,
           notes: notes || undefined,
           itemIds: Array.from(new Set(selectedIds)),
@@ -421,9 +426,15 @@ export function OotdComposer({
       setImagePreview(null);
       setSearch("");
       setPage(1);
-      window.localStorage.setItem(LAST_OPENED_ON_KEY, toLocalDateKey(new Date()));
-      window.localStorage.setItem(LAST_SELECTED_DAY_KEY, wearDate);
-      if (recordId) {
+      if (recordType === "daily") {
+        window.localStorage.setItem(LAST_OPENED_ON_KEY, toLocalDateKey(new Date()));
+        window.localStorage.setItem(LAST_SELECTED_DAY_KEY, wearDate);
+      }
+      if (recordType === "look") {
+        const payload = await response.json();
+        const nextId = recordId ?? payload?.data?.id;
+        router.push(nextId ? `/${locale}/looks/${nextId}` : `/${locale}/looks`);
+      } else if (recordId) {
         router.push(`/${locale}/ootd/${recordId}?month=${wearDate.slice(0, 7)}`);
       } else {
         router.push(`/${locale}/ootd?month=${wearDate.slice(0, 7)}&day=${wearDate}`);
@@ -439,19 +450,21 @@ export function OotdComposer({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="space-y-2">
-          <div className="text-sm font-medium">{labels.wearDate}</div>
-          <SegmentedDatePicker
-            locale={locale}
-            year={year}
-            month={month}
-            day={day}
-            yearOptions={yearOptions}
-            monthOptions={monthOptions}
-            dayOptions={dayOptions}
-            onChange={updateWearDate}
-          />
-        </label>
+        {showWearDate ? (
+          <label className="space-y-2">
+            <div className="text-sm font-medium">{labels.wearDate}</div>
+            <SegmentedDatePicker
+              locale={locale}
+              year={year}
+              month={month}
+              day={day}
+              yearOptions={yearOptions}
+              monthOptions={monthOptions}
+              dayOptions={dayOptions}
+              onChange={updateWearDate}
+            />
+          </label>
+        ) : null}
         <label className="space-y-2">
           <div className={scenarioError ? "text-sm font-medium text-red-700" : "text-sm font-medium"}>
             {labels.scenario} *
@@ -646,12 +659,12 @@ export function OotdComposer({
 
       <div className="flex items-center justify-between gap-3">
         <div className="text-xs text-[hsl(var(--muted-foreground))]">
-          {labels.dailyLimit} {remaining} / 5 · {labels.itemLimit}
+          {recordType === "daily" ? `${labels.dailyLimit} ${remaining} / 5 · ${labels.itemLimit}` : labels.itemLimit}
         </div>
         <Button
           type="button"
           onClick={onSubmit}
-          disabled={isPending || remaining === 0}
+          disabled={isPending || (recordType === "daily" && remaining === 0)}
         >
           {isPending ? labels.saving : labels.save}
         </Button>

@@ -6,6 +6,7 @@ import type { OotdRecord } from "@/types/ootd";
 function mapOotdRecord(record: {
   id: string;
   wearDate: Date;
+  recordType: "daily" | "look";
   displayOrder: number;
   scenario: string | null;
   notes: string | null;
@@ -31,6 +32,7 @@ function mapOotdRecord(record: {
   return {
     id: record.id,
     wearDate: record.wearDate.toISOString().slice(0, 10),
+    recordType: record.recordType,
     displayOrder: record.displayOrder,
     scenario: record.scenario ?? undefined,
     notes: record.notes ?? undefined,
@@ -71,6 +73,7 @@ export const ootdService = {
     const records = await prisma.ootdRecord.findMany({
       where: {
         userId: params.userId,
+        recordType: "daily",
         wearDate: {
           gte: start,
           lt: end,
@@ -107,45 +110,55 @@ export const ootdService = {
   async createRecord(params: { userId: string; input: CreateOotdDto }) {
     await this.ensureUser(params.userId);
 
+    const recordType = params.input.recordType ?? "daily";
     const wearDate = new Date(params.input.wearDate);
     const { start, end } = this.getDayRange(wearDate);
 
-    const count = await prisma.ootdRecord.count({
-      where: {
-        userId: params.userId,
-        wearDate: {
-          gte: start,
-          lt: end,
-        },
-        deletedAt: null,
-      },
-    });
+    let nextDisplayOrder = 0;
 
-    if (count >= 5) {
-      throw new Error("Daily OOTD limit reached");
+    if (recordType === "daily") {
+      const count = await prisma.ootdRecord.count({
+        where: {
+          userId: params.userId,
+          recordType: "daily",
+          wearDate: {
+            gte: start,
+            lt: end,
+          },
+          deletedAt: null,
+        },
+      });
+
+      if (count >= 5) {
+        throw new Error("Daily OOTD limit reached");
+      }
+
+      const lastRecord = await prisma.ootdRecord.findFirst({
+        where: {
+          userId: params.userId,
+          recordType: "daily",
+          wearDate: {
+            gte: start,
+            lt: end,
+          },
+          deletedAt: null,
+        },
+        orderBy: [{ displayOrder: "desc" }, { createdAt: "desc" }],
+        select: {
+          displayOrder: true,
+        },
+      });
+
+      nextDisplayOrder = (lastRecord?.displayOrder ?? -1) + 1;
     }
-
-    const lastRecord = await prisma.ootdRecord.findFirst({
-      where: {
-        userId: params.userId,
-        wearDate: {
-          gte: start,
-          lt: end,
-        },
-        deletedAt: null,
-      },
-      orderBy: [{ displayOrder: "desc" }, { createdAt: "desc" }],
-      select: {
-        displayOrder: true,
-      },
-    });
 
     const record = await prisma.ootdRecord.create({
       data: {
         userId: params.userId,
         clientId: params.input.clientId,
+        recordType,
         wearDate: start,
-        displayOrder: (lastRecord?.displayOrder ?? -1) + 1,
+        displayOrder: nextDisplayOrder,
         scenario: params.input.scenario,
         notes: params.input.notes,
         imageUrl: params.input.imageUrl,
@@ -202,44 +215,51 @@ export const ootdService = {
       throw new Error("OOTD record not found");
     }
 
+    const recordType = params.input.recordType ?? existing.recordType;
     const wearDate = new Date(params.input.wearDate);
     const { start, end } = this.getDayRange(wearDate);
-
-    const count = await prisma.ootdRecord.count({
-      where: {
-        userId: params.userId,
-        id: { not: params.recordId },
-        wearDate: {
-          gte: start,
-          lt: end,
-        },
-        deletedAt: null,
-      },
-    });
-
-    if (count >= 5) {
-      throw new Error("Daily OOTD limit reached");
-    }
 
     const existingWearDate = existing.wearDate;
     let nextDisplayOrder = existing.displayOrder;
 
-    if (existingWearDate.toISOString().slice(0, 10) !== start.toISOString().slice(0, 10)) {
-      const lastRecord = await prisma.ootdRecord.findFirst({
+    if (recordType === "daily") {
+      const count = await prisma.ootdRecord.count({
         where: {
           userId: params.userId,
-          wearDate: {
-            gte: start,
-            lt: end,
-          },
+          id: { not: params.recordId },
+          recordType: "daily",
           deletedAt: null,
-        },
-        orderBy: [{ displayOrder: "desc" }, { createdAt: "desc" }],
-        select: {
-          displayOrder: true,
-        },
+          wearDate: { gte: start, lt: end },
+        }
       });
-      nextDisplayOrder = (lastRecord?.displayOrder ?? -1) + 1;
+
+      if (count >= 5) {
+        throw new Error("Daily OOTD limit reached");
+      }
+
+      if (
+        existing.recordType !== "daily" ||
+        existingWearDate.toISOString().slice(0, 10) !== start.toISOString().slice(0, 10)
+      ) {
+        const lastRecord = await prisma.ootdRecord.findFirst({
+          where: {
+            userId: params.userId,
+            recordType: "daily",
+            wearDate: {
+              gte: start,
+              lt: end,
+            },
+            deletedAt: null,
+          },
+          orderBy: [{ displayOrder: "desc" }, { createdAt: "desc" }],
+          select: {
+            displayOrder: true,
+          },
+        });
+        nextDisplayOrder = (lastRecord?.displayOrder ?? -1) + 1;
+      }
+    } else {
+      nextDisplayOrder = 0;
     }
 
     await prisma.ootdItem.deleteMany({
@@ -253,6 +273,7 @@ export const ootdService = {
         id: params.recordId,
       },
       data: {
+        recordType,
         wearDate: start,
         displayOrder: nextDisplayOrder,
         scenario: params.input.scenario,
@@ -336,6 +357,7 @@ export const ootdService = {
     const records = await prisma.ootdRecord.findMany({
       where: {
         userId: params.userId,
+        recordType: "daily",
         wearDate: {
           gte: start,
           lt: end,
@@ -377,6 +399,7 @@ export const ootdService = {
     const records = await prisma.ootdRecord.findMany({
       where: {
         userId: params.userId,
+        recordType: "daily",
         deletedAt: null,
       },
       orderBy: [
@@ -415,6 +438,45 @@ export const ootdService = {
     return records.map(mapOotdRecord);
   },
 
+  async listLooks(params: { userId: string }) {
+    const records = await prisma.ootdRecord.findMany({
+      where: {
+        userId: params.userId,
+        recordType: "look",
+        deletedAt: null,
+      },
+      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+      include: {
+        ootdItems: {
+          orderBy: {
+            itemOrder: "asc",
+          },
+          include: {
+            wardrobeItem: {
+              select: {
+                id: true,
+                name: true,
+                imageUrl: true,
+                itemType: true,
+                brand: true,
+                category: true,
+                subcategory: true,
+                color: true,
+                designElements: true,
+                material: true,
+                season: true,
+                tags: true,
+                price: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return records.map((record) => mapOotdRecord(record));
+  },
+
   async getRecord(params: { userId: string; recordId: string }) {
     const record = await prisma.ootdRecord.findFirst({
       where: {
@@ -451,5 +513,66 @@ export const ootdService = {
     });
 
     return record ? mapOotdRecord(record) : null;
+  },
+
+  async addLooksToDay(params: { userId: string; lookIds: string[]; wearDate: string }) {
+    const wearDate = new Date(params.wearDate);
+    const { start, end } = this.getDayRange(wearDate);
+
+    const looks = await prisma.ootdRecord.findMany({
+      where: {
+        userId: params.userId,
+        recordType: "look",
+        id: { in: params.lookIds },
+        deletedAt: null,
+      },
+      include: {
+        ootdItems: {
+          orderBy: { itemOrder: "asc" },
+          select: { wardrobeItemId: true, itemOrder: true },
+        },
+      },
+      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+    });
+
+    if (looks.length === 0) {
+      return;
+    }
+
+    const count = await prisma.ootdRecord.count({
+      where: {
+        userId: params.userId,
+        recordType: "daily",
+        wearDate: { gte: start, lt: end },
+        deletedAt: null,
+      },
+    });
+
+    if (count + looks.length > 5) {
+      throw new Error("Daily OOTD limit reached");
+    }
+
+    let nextDisplayOrder = count;
+    await prisma.$transaction(
+      looks.map((look) =>
+        prisma.ootdRecord.create({
+          data: {
+            userId: params.userId,
+            recordType: "daily",
+            wearDate: start,
+            displayOrder: nextDisplayOrder++,
+            scenario: look.scenario,
+            notes: look.notes,
+            imageUrl: look.imageUrl,
+            ootdItems: {
+              create: look.ootdItems.map((item) => ({
+                wardrobeItemId: item.wardrobeItemId,
+                itemOrder: item.itemOrder,
+              })),
+            },
+          },
+        }),
+      ),
+    );
   },
 };

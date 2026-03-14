@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AddToCandidatesButton } from "@/components/ootd/add-to-candidates-button";
 import { OotdComposer } from "@/components/ootd/ootd-composer";
 import { ItemSearchInput } from "@/components/search/item-search-input";
@@ -8,12 +8,12 @@ import { ItemHoverDetails } from "@/components/shared/item-hover-details";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getItemDisplaySubtitle, getItemDisplayTitle } from "@/lib/item-display";
-import { clearOotdCandidates, getOotdCandidates, onOotdCandidatesChanged } from "@/lib/ootd-candidates";
+import { addOotdCandidate, clearOotdCandidates, getOotdCandidates, onOotdCandidatesChanged } from "@/lib/ootd-candidates";
 import { getWardrobeItemSearchEntries, matchesSearchEntries, matchesSearchText } from "@/lib/search/item-search";
 import type { OotdRecord } from "@/types/ootd";
 import type { WardrobeItem } from "@/types/item";
 
-const PAGE_SIZE = 5;
+const SEARCH_PAGE_SIZE = 5;
 const MAX_SELECTED_ITEMS = 20;
 
 type SuggestionGroup =
@@ -55,6 +55,7 @@ function buildSuggestionEntries(item: WardrobeItem) {
 export function OotdCandidateBuilder({
   locale,
   records,
+  wardrobeItems,
   initialWearDate,
   recordId,
   initialScenario,
@@ -63,9 +64,12 @@ export function OotdCandidateBuilder({
   initialSelectedIds,
   initialPoolItems,
   labels,
+  recordType = "daily",
+  showWearDate = true,
 }: {
   locale: string;
   records: OotdRecord[];
+  wardrobeItems: WardrobeItem[];
   initialWearDate?: string;
   recordId?: string;
   initialScenario?: string;
@@ -83,6 +87,8 @@ export function OotdCandidateBuilder({
     remove: string;
     composer: Parameters<typeof OotdComposer>[0]["labels"];
   };
+  recordType?: "daily" | "look";
+  showWearDate?: boolean;
 }) {
   const [items, setItems] = useState<WardrobeItem[]>(() => {
     const seen = new Set<string>();
@@ -94,8 +100,10 @@ export function OotdCandidateBuilder({
   });
   const [selectedIds, setSelectedIds] = useState<string[]>(initialSelectedIds ?? []);
   const [search, setSearch] = useState("");
-  const [selectedPage, setSelectedPage] = useState(1);
   const [candidatePage, setCandidatePage] = useState(1);
+  const candidateStripRef = useRef<HTMLDivElement | null>(null);
+  const candidateItemRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const [pendingScrollItemId, setPendingScrollItemId] = useState<string | null>(null);
 
   useEffect(() => {
     const mergeItems = () => {
@@ -109,7 +117,10 @@ export function OotdCandidateBuilder({
     };
 
     setItems(mergeItems());
-    return onOotdCandidatesChanged(() => {
+    return onOotdCandidatesChanged((detail) => {
+      if (detail?.changedItemId) {
+        setPendingScrollItemId(detail.changedItemId);
+      }
       setItems(mergeItems());
     });
   }, [initialPoolItems]);
@@ -124,24 +135,37 @@ export function OotdCandidateBuilder({
   }, [items]);
 
   useEffect(() => {
-    setSelectedPage(1);
-  }, [selectedIds]);
-
-  useEffect(() => {
     setCandidatePage(1);
   }, [search, selectedIds]);
+
+  useEffect(() => {
+    if (!pendingScrollItemId) return;
+
+    requestAnimationFrame(() => {
+      const target = candidateItemRefs.current[pendingScrollItemId];
+      target?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      setPendingScrollItemId(null);
+    });
+  }, [items, pendingScrollItemId]);
 
   const clearItems = () => {
     clearOotdCandidates();
     setItems([]);
   };
 
-  const selectedItems = useMemo(
-    () => items.filter((item) => selectedIds.includes(item.id)),
-    [items, selectedIds],
-  );
+  const searchableItems = useMemo(() => {
+    const merged = [...wardrobeItems, ...items];
+    const seen = new Set<string>();
+
+    return merged.filter((item) => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
+  }, [items, wardrobeItems]);
+
   const filteredCandidateItems = useMemo(() => {
-    const baseItems = items.filter((item) => !selectedIds.includes(item.id));
+    const baseItems = searchableItems.filter((item) => !selectedIds.includes(item.id));
     const query = search.trim().toLowerCase();
 
     if (!query) {
@@ -149,12 +173,12 @@ export function OotdCandidateBuilder({
     }
 
     return baseItems.filter((item) => matchesSearchEntries(getWardrobeItemSearchEntries(item), query));
-  }, [items, search, selectedIds]);
+  }, [search, searchableItems, selectedIds]);
   const suggestionOptions = useMemo(() => {
     const query = search.trim().toLowerCase();
     const pool = new Map<string, { group: SuggestionGroup; value: string }>();
 
-    for (const item of items) {
+    for (const item of searchableItems) {
       if (selectedIds.includes(item.id)) continue;
 
       for (const entry of buildSuggestionEntries(item)) {
@@ -169,7 +193,7 @@ export function OotdCandidateBuilder({
     }
 
     return Array.from(pool.values());
-  }, [items, search, selectedIds]);
+  }, [search, searchableItems, selectedIds]);
   const groupedSuggestions = useMemo(() => {
     const order: SuggestionGroup[] = [
       "name",
@@ -194,17 +218,11 @@ export function OotdCandidateBuilder({
       }))
       .filter((group) => group.items.length > 0);
   }, [suggestionOptions]);
-  const selectedTotalPages = Math.max(1, Math.ceil(selectedItems.length / PAGE_SIZE));
-  const currentSelectedPage = Math.min(selectedPage, selectedTotalPages);
-  const pagedSelectedItems = useMemo(() => {
-    const start = (currentSelectedPage - 1) * PAGE_SIZE;
-    return selectedItems.slice(start, start + PAGE_SIZE);
-  }, [currentSelectedPage, selectedItems]);
-  const candidateTotalPages = Math.max(1, Math.ceil(filteredCandidateItems.length / PAGE_SIZE));
+  const candidateTotalPages = Math.max(1, Math.ceil(filteredCandidateItems.length / SEARCH_PAGE_SIZE));
   const currentCandidatePage = Math.min(candidatePage, candidateTotalPages);
   const pagedCandidateItems = useMemo(() => {
-    const start = (currentCandidatePage - 1) * PAGE_SIZE;
-    return filteredCandidateItems.slice(start, start + PAGE_SIZE);
+    const start = (currentCandidatePage - 1) * SEARCH_PAGE_SIZE;
+    return filteredCandidateItems.slice(start, start + SEARCH_PAGE_SIZE);
   }, [currentCandidatePage, filteredCandidateItems]);
 
   const candidateItems = useMemo(
@@ -213,13 +231,30 @@ export function OotdCandidateBuilder({
   );
 
   const toggleItemSelection = (itemId: string) => {
-    setSelectedIds((current) =>
-      current.includes(itemId)
-        ? current.filter((id) => id !== itemId)
-        : current.length >= MAX_SELECTED_ITEMS
-          ? current
-          : [...current, itemId],
-    );
+    setPendingScrollItemId(itemId);
+    setSelectedIds((current) => {
+      if (current.includes(itemId)) {
+        return current.filter((id) => id !== itemId);
+      }
+
+      if (current.length >= MAX_SELECTED_ITEMS) {
+        return current;
+      }
+
+      return [...current, itemId];
+    });
+  };
+
+  const selectFromSearchResult = (item: WardrobeItem) => {
+    addOotdCandidate(item);
+    setPendingScrollItemId(item.id);
+    setSelectedIds((current) => {
+      if (current.includes(item.id) || current.length >= MAX_SELECTED_ITEMS) {
+        return current;
+      }
+
+      return [...current, item.id];
+    });
   };
 
   const applySuggestion = (value: string) => {
@@ -249,24 +284,98 @@ export function OotdCandidateBuilder({
           </Button>
         </div>
 
-        {items.length === 0 ? (
-          <div className="rounded-[22px] border border-white/70 bg-white/72 p-4 text-sm text-[hsl(var(--muted-foreground))]">
-            {labels.empty}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {selectedItems.length > 0 ? (
-              <div className="space-y-2">
-                <div className="text-sm font-medium">{labels.composer.selectedItems}</div>
+        <div className="space-y-4">
+          {items.length === 0 ? (
+            <div className="rounded-[22px] border border-white/70 bg-white/72 p-4 text-sm text-[hsl(var(--muted-foreground))]">
+              {labels.empty}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-medium">{labels.composer.candidateItems}</div>
+                <div className="text-xs text-[hsl(var(--muted-foreground))]">
+                  {labels.composer.selected} {selectedIds.length} / {MAX_SELECTED_ITEMS}
+                </div>
+              </div>
+              <div ref={candidateStripRef} className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2">
+                {items.map((item) => {
+                  const isSelected = selectedIds.includes(item.id);
+
+                  return (
+                    <button
+                      key={item.id}
+                      ref={(node) => {
+                        candidateItemRefs.current[item.id] = node;
+                      }}
+                      type="button"
+                      onClick={() => toggleItemSelection(item.id)}
+                      className={
+                        isSelected
+                          ? "w-[132px] shrink-0 snap-start rounded-[20px] border border-[hsl(var(--primary))] bg-[hsl(var(--primary))] p-3 text-left text-[hsl(var(--primary-foreground))] shadow-[0_12px_24px_rgba(77,57,36,0.18)] transition"
+                          : "w-[132px] shrink-0 snap-start rounded-[20px] border border-white/70 bg-white/82 p-3 text-left shadow-[0_8px_18px_rgba(77,57,36,0.06)] transition hover:border-[rgba(214,154,97,0.4)]"
+                      }
+                    >
+                      {item.imageUrl ? (
+                        <img
+                          src={item.imageUrl}
+                          alt={item.name}
+                          className="h-20 w-full rounded-[16px] object-cover"
+                        />
+                      ) : (
+                        <div className="h-20 w-full rounded-[16px] bg-[linear-gradient(160deg,#ead6c1,#f7f1e8)]" />
+                      )}
+                      <div className="group/details relative mt-2 inline-block max-w-full">
+                        <div
+                          className={
+                            isSelected
+                              ? "truncate text-sm font-semibold text-[hsl(var(--primary-foreground))]"
+                              : "truncate text-sm font-semibold text-[hsl(var(--foreground))]"
+                          }
+                        >
+                          {getItemDisplayTitle(item, "", "")}
+                        </div>
+                        <ItemHoverDetails item={item} labels={labels.composer.detailFields} />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <div className="text-sm font-medium">{labels.composer.searchLabel}</div>
+            <div className="space-y-2">
+              <ItemSearchInput
+                value={search}
+                onValueChange={(value) => {
+                  setSearch(value);
+                  setCandidatePage(1);
+                }}
+                onSelect={applySuggestion}
+                placeholder={labels.composer.searchPlaceholder}
+                emptyLabel={labels.composer.noSearchResults}
+                groups={groupedSuggestions.map((group) => ({
+                  label: labels.composer.suggestionGroups[group.key],
+                  options: group.items,
+                }))}
+                historyKey="smart-wardrobe:search-history:ootd-candidates"
+                recentLabel={labels.composer.recentSearches}
+              />
+              {candidateItems.length === 0 ? (
+                <div className="rounded-[20px] border border-white/70 bg-white/72 p-4 text-sm text-[hsl(var(--muted-foreground))]">
+                  {labels.composer.noSearchResults}
+                </div>
+              ) : (
                 <div className="grid gap-2">
-                  {pagedSelectedItems.map((item) => (
+                  {pagedCandidateItems.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center gap-3 rounded-[20px] border border-[hsl(var(--primary))] bg-[rgba(255,247,238,0.95)] p-3 text-left shadow-[0_10px_22px_rgba(77,57,36,0.06)]"
+                      className="flex items-center gap-3 rounded-[20px] border border-white/70 bg-white/80 p-3"
                     >
                       <button
                         type="button"
-                        onClick={() => toggleItemSelection(item.id)}
+                        onClick={() => selectFromSearchResult(item)}
                         className="flex min-w-0 flex-1 items-center gap-3 text-left"
                       >
                         {item.imageUrl ? (
@@ -295,120 +404,31 @@ export function OotdCandidateBuilder({
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center justify-between gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setSelectedPage((current) => Math.max(1, current - 1))}
-                    disabled={currentSelectedPage <= 1}
-                  >
-                    {labels.composer.prevPage}
-                  </Button>
-                  <div className="text-xs text-[hsl(var(--muted-foreground))]">
-                    {labels.composer.page} {currentSelectedPage} / {selectedTotalPages}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setSelectedPage((current) => Math.min(selectedTotalPages, current + 1))}
-                    disabled={currentSelectedPage >= selectedTotalPages}
-                  >
-                    {labels.composer.nextPage}
-                  </Button>
+              )}
+              <div className="flex items-center justify-between gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCandidatePage((current) => Math.max(1, current - 1))}
+                  disabled={currentCandidatePage <= 1}
+                >
+                  {labels.composer.prevPage}
+                </Button>
+                <div className="text-xs text-[hsl(var(--muted-foreground))]">
+                  {labels.composer.page} {currentCandidatePage} / {candidateTotalPages}
                 </div>
-              </div>
-            ) : null}
-
-            <div className="space-y-2">
-              <div className="text-sm font-medium">{labels.composer.candidateItems}</div>
-              <div className="text-xs text-[hsl(var(--muted-foreground))]">
-                {labels.composer.selected} {selectedIds.length} / {MAX_SELECTED_ITEMS}
-              </div>
-              <div className="space-y-2">
-                <ItemSearchInput
-                  value={search}
-                  onValueChange={(value) => {
-                    setSearch(value);
-                    setPage(1);
-                  }}
-                  onSelect={applySuggestion}
-                  placeholder={labels.composer.searchPlaceholder}
-                  emptyLabel={labels.composer.noSearchResults}
-                  groups={groupedSuggestions.map((group) => ({
-                    label: labels.composer.suggestionGroups[group.key],
-                    options: group.items,
-                  }))}
-                  historyKey="smart-wardrobe:search-history:ootd-candidates"
-                  recentLabel={labels.composer.recentSearches}
-                />
-                {candidateItems.length === 0 ? (
-                  <div className="rounded-[20px] border border-white/70 bg-white/72 p-4 text-sm text-[hsl(var(--muted-foreground))]">
-                    {labels.composer.noSearchResults}
-                  </div>
-                ) : (
-                  <div className="grid gap-2">
-                    {pagedCandidateItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-3 rounded-[20px] border border-white/70 bg-white/80 p-3"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => toggleItemSelection(item.id)}
-                      className="flex min-w-0 flex-1 items-center gap-3 text-left"
-                    >
-                      {item.imageUrl ? (
-                        <img src={item.imageUrl} alt={item.name} className="h-14 w-12 rounded-[14px] object-cover" />
-                      ) : (
-                        <div className="h-14 w-12 rounded-[14px] bg-[linear-gradient(160deg,#ead6c1,#f7f1e8)]" />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate font-medium">{getItemDisplayTitle(item, "", "")}</div>
-                        <div className="group/details relative inline-block max-w-full">
-                          <div className="truncate text-xs text-[hsl(var(--muted-foreground))]">
-                            {getItemDisplaySubtitle(item) || ""}
-                          </div>
-                          <ItemHoverDetails item={item} labels={labels.composer.detailFields} />
-                        </div>
-                      </div>
-                    </button>
-                    <AddToCandidatesButton
-                      item={item}
-                      labels={{
-                        add: labels.composer.addToCandidate,
-                        added: labels.composer.addedToCandidate,
-                        remove: labels.composer.removeFromCandidate,
-                      }}
-                    />
-                  </div>
-                    ))}
-                  </div>
-                )}
-                <div className="flex items-center justify-between gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setCandidatePage((current) => Math.max(1, current - 1))}
-                    disabled={currentCandidatePage <= 1}
-                  >
-                    {labels.composer.prevPage}
-                  </Button>
-                  <div className="text-xs text-[hsl(var(--muted-foreground))]">
-                    {labels.composer.page} {currentCandidatePage} / {candidateTotalPages}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setCandidatePage((current) => Math.min(candidateTotalPages, current + 1))}
-                    disabled={currentCandidatePage >= candidateTotalPages}
-                  >
-                    {labels.composer.nextPage}
-                  </Button>
-                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCandidatePage((current) => Math.min(candidateTotalPages, current + 1))}
+                  disabled={currentCandidatePage >= candidateTotalPages}
+                >
+                  {labels.composer.nextPage}
+                </Button>
               </div>
             </div>
           </div>
-        )}
+        </div>
       </Card>
 
       <OotdComposer
@@ -426,6 +446,8 @@ export function OotdCandidateBuilder({
         selectedIds={selectedIds}
         onSelectedIdsChange={setSelectedIds}
         showItemPicker={false}
+        recordType={recordType}
+        showWearDate={showWearDate}
       />
     </div>
   );

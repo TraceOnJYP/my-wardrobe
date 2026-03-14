@@ -2,20 +2,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { OotdCandidateBuilder } from "@/components/ootd/ootd-candidate-builder";
 import { getDictionary } from "@/features/i18n/get-dictionary";
-import type { Locale } from "@/features/i18n/routing";
 import { getItems } from "@/features/wardrobe/api";
+import type { Locale } from "@/features/i18n/routing";
 import { getSessionUser } from "@/lib/auth/session";
 import { ootdService } from "@/server/services/ootd.service";
 
-export default async function OotdEditPage({
+export default async function LookEditPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ locale: Locale; id: string }>;
-  searchParams: Promise<{ month?: string }>;
 }) {
   const { locale, id } = await params;
-  const { month } = await searchParams;
   const dict = await getDictionary(locale);
   const user = await getSessionUser();
 
@@ -28,28 +25,28 @@ export default async function OotdEditPage({
     getItems(locale),
   ]);
 
-  if (!record) {
+  if (!record || record.recordType !== "look") {
     notFound();
   }
 
-  const backHref = month ? `/${locale}/ootd/${id}?month=${month}` : `/${locale}/ootd/${id}`;
   const selectedItems = wardrobe.data.filter((item) => record.itemIds.includes(item.id));
   const composerLabels = {
     ...dict.ootd.composer,
-    title: dict.ootd.detail.editTitle,
-    subtitle: dict.ootd.detail.editSubtitle,
-    save: dict.ootd.detail.saveEdit,
+    title: dict.looks.editTitle,
+    subtitle: dict.looks.editSubtitle,
+    save: dict.looks.saveEdit,
+    itemLimit: dict.looks.itemLimit,
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
         <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">{dict.ootd.detail.editTitle}</h1>
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">{dict.ootd.detail.editSubtitle}</p>
+          <h1 className="text-3xl font-semibold tracking-tight">{dict.looks.editTitle}</h1>
+          <p className="text-sm text-[hsl(var(--muted-foreground))]">{dict.looks.editSubtitle}</p>
         </div>
         <Link
-          href={backHref}
+          href={`/${locale}/looks/${record.id}`}
           className="rounded-full border border-white/70 bg-white/85 px-4 py-2 text-sm font-medium"
         >
           {dict.ootd.detail.cancel}
@@ -71,6 +68,8 @@ export default async function OotdEditPage({
           ...dict.ootd.candidates,
           composer: composerLabels,
         }}
+        recordType="look"
+        showWearDate={false}
       />
     </div>
   );

@@ -33,6 +33,7 @@ export interface CreateWardrobeItemDto {
 export interface CreateOotdDto {
   clientId?: string;
   wearDate: string;
+  recordType?: "daily" | "look";
   scenario?: string;
   notes?: string;
   itemIds: string[];

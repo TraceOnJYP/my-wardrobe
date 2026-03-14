@@ -22,11 +22,15 @@ export function OotdDetailShell({
   record,
   labels,
   pageTitle,
+  backHref,
+  editHref,
 }: {
   locale: string;
   month?: string;
   record: OotdRecord;
   pageTitle: string;
+  backHref?: string;
+  editHref?: string;
   labels: {
     title: string;
     subtitle: string;
@@ -49,7 +53,8 @@ export function OotdDetailShell({
   };
 }) {
   const [isImageOpen, setIsImageOpen] = useState(false);
-  const backHref = month ? `/${locale}/ootd?month=${month}` : `/${locale}/ootd`;
+  const resolvedBackHref = backHref ?? (month ? `/${locale}/ootd?month=${month}` : `/${locale}/ootd`);
+  const resolvedEditHref = editHref ?? (month ? `/${locale}/ootd/${record.id}/edit?month=${month}` : `/${locale}/ootd/${record.id}/edit`);
 
   return (
     <div className="space-y-6">
@@ -60,19 +65,19 @@ export function OotdDetailShell({
         </div>
         <div className="flex items-center gap-3">
           <Link
-            href={month ? `/${locale}/ootd/${record.id}/edit?month=${month}` : `/${locale}/ootd/${record.id}/edit`}
+            href={resolvedEditHref}
             className="rounded-full border border-white/70 bg-white/85 px-4 py-2 text-sm font-medium"
           >
             {labels.edit}
           </Link>
           <DeleteOotdButton
             recordId={record.id}
-            redirectHref={backHref}
+            redirectHref={resolvedBackHref}
             label={labels.delete}
             pendingLabel={labels.deleting}
           />
           <Link
-            href={backHref}
+            href={resolvedBackHref}
             className="rounded-full border border-white/70 bg-white/85 px-4 py-2 text-sm font-medium"
           >
             {labels.back}

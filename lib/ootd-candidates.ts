@@ -5,6 +5,11 @@ const COOKIE_KEY = "smart-wardrobe-ootd-candidate-count";
 const EVENT_NAME = "ootd-candidates-changed";
 const MOTION_EVENT_NAME = "ootd-candidates-motion";
 
+type OotdCandidatesChangedDetail = {
+  items: WardrobeItem[];
+  changedItemId?: string;
+};
+
 export type OotdCandidateMotionDetail = {
   sourceX: number;
   sourceY: number;
@@ -31,12 +36,12 @@ export function getOotdCandidates() {
   }
 }
 
-export function saveOotdCandidates(items: WardrobeItem[]) {
+export function saveOotdCandidates(items: WardrobeItem[], changedItemId?: string) {
   if (!canUseStorage()) return;
 
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   document.cookie = `${COOKIE_KEY}=${items.length}; path=/; max-age=31536000; samesite=lax`;
-  window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: items }));
+  window.dispatchEvent(new CustomEvent<OotdCandidatesChangedDetail>(EVENT_NAME, { detail: { items, changedItemId } }));
 }
 
 export function addOotdCandidate(item: WardrobeItem) {
@@ -45,14 +50,14 @@ export function addOotdCandidate(item: WardrobeItem) {
     return current;
   }
 
-  const next = [item, ...current];
-  saveOotdCandidates(next);
+  const next = [...current, item];
+  saveOotdCandidates(next, item.id);
   return next;
 }
 
 export function removeOotdCandidate(itemId: string) {
   const next = getOotdCandidates().filter((item) => item.id !== itemId);
-  saveOotdCandidates(next);
+  saveOotdCandidates(next, itemId);
   return next;
 }
 
@@ -64,12 +69,15 @@ export function hasOotdCandidate(itemId: string) {
   return getOotdCandidates().some((item) => item.id === itemId);
 }
 
-export function onOotdCandidatesChanged(listener: () => void) {
+export function onOotdCandidatesChanged(listener: (detail?: OotdCandidatesChangedDetail) => void) {
   if (typeof window === "undefined") {
     return () => undefined;
   }
 
-  const handler = () => listener();
+  const handler = (event: Event) => {
+    const customEvent = event as CustomEvent<OotdCandidatesChangedDetail>;
+    listener(customEvent.detail);
+  };
   window.addEventListener(EVENT_NAME, handler);
   return () => window.removeEventListener(EVENT_NAME, handler);
 }

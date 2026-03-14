@@ -4,11 +4,13 @@ import { createOotdSchema } from "@/lib/validations/ootd";
 import { getOotdRecords } from "@/features/ootd/api";
 import { ootdService } from "@/server/services/ootd.service";
 
-export async function GET() {
+export async function GET(request: Request) {
   const user = await getSessionUser();
   if (!user) return unauthorized();
 
-  const records = await getOotdRecords(user.locale);
+  const url = new URL(request.url);
+  const type = url.searchParams.get("type") === "look" ? "look" : "daily";
+  const records = await getOotdRecords(user.locale, type);
   return ok(records.data);
 }
 

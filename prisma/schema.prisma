@@ -18,6 +18,11 @@ enum AuthProvider {
   wechat
 }
 
+enum OotdRecordType {
+  daily
+  look
+}
+
 enum ItemStatus {
   active
   archived
@@ -136,23 +141,25 @@ model WardrobeItem {
 }
 
 model OotdRecord {
-  id         String     @id @default(uuid()) @db.Uuid
-  userId     String     @db.Uuid
-  clientId   String?    @db.Uuid
-  wearDate   DateTime   @db.Date
+  id           String         @id @default(uuid()) @db.Uuid
+  userId       String         @db.Uuid
+  clientId     String?        @db.Uuid
+  recordType   OotdRecordType @default(daily)
+  wearDate     DateTime       @db.Date
   displayOrder Int      @default(0)
-  scenario   String?    @db.VarChar(80)
-  notes      String?
-  imageUrl   String?    @db.VarChar(500)
-  version    Int        @default(1)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  deletedAt  DateTime?
-  user       User       @relation(fields: [userId], references: [id])
-  ootdItems  OotdItem[]
+  scenario     String?        @db.VarChar(80)
+  notes        String?
+  imageUrl     String?        @db.VarChar(500)
+  version      Int            @default(1)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  deletedAt    DateTime?
+  user         User           @relation(fields: [userId], references: [id])
+  ootdItems    OotdItem[]
 
   @@unique([userId, clientId])
   @@index([userId, wearDate])
+  @@index([userId, recordType])
   @@index([userId, wearDate, displayOrder])
   @@map("ootd_records")
 }
