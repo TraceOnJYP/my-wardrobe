@@ -239,14 +239,14 @@ export function OotdCalendar({
         <div className="flex items-center justify-between gap-2 xl:pt-1">
           <Link
             href={prevMonthHref}
-            className="rounded-full border border-white/70 bg-white/80 px-4 py-2 text-center text-sm font-medium"
+            className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-white/70 bg-white/80 px-4 py-2 text-center text-sm font-medium"
           >
             {labels.previousMonth}
           </Link>
           <div className="min-w-[148px] text-center text-sm font-semibold">{formatMonthTitle(monthStart, locale)}</div>
           <Link
             href={nextMonthHref}
-            className="rounded-full border border-white/70 bg-white/80 px-4 py-2 text-center text-sm font-medium"
+            className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-white/70 bg-white/80 px-4 py-2 text-center text-sm font-medium"
           >
             {labels.nextMonth}
           </Link>
@@ -340,7 +340,7 @@ export function OotdCalendar({
                   : labels.selectedDayEmpty}
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               {selectionMode ? (
                 <>
                   <Button
@@ -368,13 +368,13 @@ export function OotdCalendar({
                     {labels.select}
                   </Button>
                   {activeDayIsFull ? (
-                    <div className="shrink-0 rounded-full border border-[rgba(214,154,97,0.3)] bg-[rgba(250,244,238,0.9)] px-4 py-2 text-sm font-medium text-[hsl(var(--muted-foreground))]">
+                    <div className="shrink-0 whitespace-nowrap rounded-full border border-[rgba(214,154,97,0.3)] bg-[rgba(250,244,238,0.9)] px-4 py-2 text-sm font-medium text-[hsl(var(--muted-foreground))]">
                       {labels.fullDay}
                     </div>
                   ) : (
                     <Link
                       href={`/${locale}/ootd/candidates?day=${activeDay?.key ?? todayKey}`}
-                      className="shrink-0 rounded-full border border-white/75 bg-white/88 px-4 py-2 text-sm font-medium shadow-[0_8px_18px_rgba(77,57,36,0.06)]"
+                      className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-white/75 bg-white/88 px-4 py-2 text-sm font-medium shadow-[0_8px_18px_rgba(77,57,36,0.06)]"
                     >
                       {labels.createToday}
                     </Link>

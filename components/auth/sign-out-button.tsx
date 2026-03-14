@@ -14,6 +14,7 @@ export function SignOutButton({
     <Button
       type="button"
       variant="outline"
+      className="shrink-0"
       onClick={() => {
         void signOut({ callbackUrl });
       }}

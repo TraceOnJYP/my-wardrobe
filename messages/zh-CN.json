@@ -62,7 +62,7 @@
       "deleting": "删除中...",
       "deleteTitle": "确认删除衣物",
       "deleteConfirm": "确认删除这件衣物吗？此操作不可撤销。",
-      "cancel": "取消编辑",
+      "cancel": "取消",
       "overview": "基础信息",
       "attributes": "款式与属性",
       "usage": "使用与偏好",
@@ -362,7 +362,7 @@
       "moveUp": "上移穿搭",
       "moveDown": "下移穿搭",
       "itemCount": "个单品",
-      "cancel": "取消编辑",
+      "cancel": "取消",
       "editTitle": "编辑穿搭",
       "editSubtitle": "修改日期、场景、照片和关联单品后重新保存。",
       "saveEdit": "保存编辑",
@@ -492,18 +492,31 @@
   },
   "profile": {
     "title": "个人设置",
+    "subtitle": "查看当前账号、登录方式和基础偏好设置。",
     "loginRequired": "登录后可管理账号信息、同步设置和语言偏好。",
     "loginAction": "去登录",
+    "accountTitle": "账号信息",
+    "accountSubtitle": "当前登录账号会作为你的衣橱、穿搭和分析数据空间。",
     "providersTitle": "已绑定登录方式",
     "noProviders": "当前仍在使用本地演示模式，尚未绑定正式登录方式。",
+    "preferencesTitle": "偏好设置",
+    "preferencesSubtitle": "这里保留最常用的展示偏好，不再放无实际作用的占位按钮。",
+    "languageTitle": "界面语言",
+    "languageSubtitle": "中英文界面会即时切换，当前页面路径也会同步更新。",
+    "timezoneTitle": "时区",
+    "timezoneSubtitle": "当前账号默认使用的时区，用于后续记录和统计展示。",
+    "dataTitle": "数据说明",
+    "dataSubtitle": "说明当前账号下的数据归属和登录后的默认行为。",
+    "scopeTitle": "数据范围",
+    "scopeBody": "衣橱、穿搭日历、穿搭列表和分析数据都会绑定到当前登录账号。后续切换账号后，将看到对应账号自己的数据。",
+    "demoMigrationTitle": "首次登录导入",
+    "demoMigrationBody": "如果你之前在本地演示模式下已经录入过数据，系统会在首次登录时自动把这些数据导入当前账号。",
     "signOut": "退出登录",
     "providerLabels": {
       "google": "Google",
       "apple": "Apple",
       "wechat": "微信"
-    },
-    "syncStatus": "0 条待同步 · 0 条冲突",
-    "preferencePlaceholder": "这里将放置语言、同步与个人偏好设置。"
+    }
   },
   "auth": {
     "login": {

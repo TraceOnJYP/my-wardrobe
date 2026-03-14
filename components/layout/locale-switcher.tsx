@@ -18,7 +18,7 @@ export function LocaleSwitcher({
   return (
     <Link
       href={`/${nextLocale}${pathWithoutLocale || ""}`}
-      className="inline-flex items-center rounded-full border border-white/70 bg-white/78 px-3 py-1.5 text-sm font-medium text-[hsl(var(--foreground))] shadow-[0_8px_18px_rgba(77,57,36,0.08)] backdrop-blur-sm"
+      className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-white/70 bg-white/78 px-3 py-1.5 text-sm font-medium text-[hsl(var(--foreground))] shadow-[0_8px_18px_rgba(77,57,36,0.08)] backdrop-blur-sm"
     >
       {label}
     </Link>

@@ -62,7 +62,7 @@
       "deleting": "Deleting...",
       "deleteTitle": "Confirm deletion",
       "deleteConfirm": "Delete this wardrobe item? This action cannot be undone.",
-      "cancel": "Cancel edit",
+      "cancel": "Cancel",
       "overview": "Overview",
       "attributes": "Attributes",
       "usage": "Usage and preference",
@@ -492,18 +492,31 @@
   },
   "profile": {
     "title": "Profile",
+    "subtitle": "Review the current account, sign-in methods, and core preferences.",
     "loginRequired": "Sign in to manage account, sync settings, and language preferences.",
     "loginAction": "Open login",
+    "accountTitle": "Account",
+    "accountSubtitle": "The current signed-in account owns your wardrobe, outfit, and analytics data.",
     "providersTitle": "Linked sign-in methods",
     "noProviders": "You are still using demo mode and no production sign-in provider is linked yet.",
+    "preferencesTitle": "Preferences",
+    "preferencesSubtitle": "Keep only the settings that matter here instead of placeholder controls.",
+    "languageTitle": "Interface language",
+    "languageSubtitle": "The UI switches instantly between Chinese and English and keeps the matching locale route.",
+    "timezoneTitle": "Time zone",
+    "timezoneSubtitle": "The default account time zone used by future records and analytics displays.",
+    "dataTitle": "Data notes",
+    "dataSubtitle": "How data is scoped to the current account and what happens after sign-in.",
+    "scopeTitle": "Data scope",
+    "scopeBody": "Wardrobe items, outfit calendar, lookbook, and analytics are all tied to the currently signed-in account. Switching accounts will show that account's own data.",
+    "demoMigrationTitle": "First sign-in import",
+    "demoMigrationBody": "If you created data earlier in local demo mode, the system imports it into the current account automatically on the first successful sign-in.",
     "signOut": "Sign out",
     "providerLabels": {
       "google": "Google",
       "apple": "Apple",
       "wechat": "WeChat"
-    },
-    "syncStatus": "0 queued · 0 conflicts",
-    "preferencePlaceholder": "This area will host language, sync, and account preferences."
+    }
   },
   "auth": {
     "login": {
