@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { AddToCandidatesButton } from "@/components/ootd/add-to-candidates-button";
 import { OotdComposer } from "@/components/ootd/ootd-composer";
 import { ItemSearchInput } from "@/components/search/item-search-input";
@@ -9,7 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getItemDisplaySubtitle, getItemDisplayTitle } from "@/lib/item-display";
 import { addOotdCandidate, clearOotdCandidates, getOotdCandidates, onOotdCandidatesChanged } from "@/lib/ootd-candidates";
-import { getWardrobeItemSearchEntries, matchesSearchEntries, matchesSearchText } from "@/lib/search/item-search";
+import {
+  getIndexedWardrobeItemSearch,
+  matchesIndexedSearchEntries,
+  matchesSearchValue,
+} from "@/lib/search/item-search";
 import type { OotdRecord } from "@/types/ootd";
 import type { WardrobeItem } from "@/types/item";
 
@@ -27,30 +31,6 @@ type SuggestionGroup =
   | "scenario"
   | "season"
   | "tags";
-
-function buildSuggestionEntries(item: WardrobeItem) {
-  const entries: Array<{ group: SuggestionGroup; value: string }> = [];
-
-  if (item.name?.trim()) entries.push({ group: "name", value: item.name.trim() });
-  if (item.brand?.trim()) entries.push({ group: "brand", value: item.brand.trim() });
-  if (item.category?.trim()) entries.push({ group: "category", value: item.category.trim() });
-  if (item.subcategory?.trim()) entries.push({ group: "category", value: item.subcategory.trim() });
-  if (item.color?.trim()) entries.push({ group: "color", value: item.color.trim() });
-  if (item.designElements?.trim()) entries.push({ group: "designElements", value: item.designElements.trim() });
-  if (item.material?.trim()) entries.push({ group: "material", value: item.material.trim() });
-  if (item.style?.trim()) entries.push({ group: "style", value: item.style.trim() });
-  if (item.scenario?.trim()) entries.push({ group: "scenario", value: item.scenario.trim() });
-
-  for (const season of item.season) {
-    if (season?.trim()) entries.push({ group: "season", value: season.trim() });
-  }
-
-  for (const tag of item.tags) {
-    if (tag?.trim()) entries.push({ group: "tags", value: tag.trim() });
-  }
-
-  return entries;
-}
 
 export function OotdCandidateBuilder({
   locale,
@@ -100,6 +80,7 @@ export function OotdCandidateBuilder({
   });
   const [selectedIds, setSelectedIds] = useState<string[]>(initialSelectedIds ?? []);
   const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const [candidatePage, setCandidatePage] = useState(1);
   const candidateStripRef = useRef<HTMLDivElement | null>(null);
   const candidateItemRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -163,26 +144,32 @@ export function OotdCandidateBuilder({
       return true;
     });
   }, [items, wardrobeItems]);
+  const indexedSearchableItems = useMemo(
+    () => searchableItems.map((item) => getIndexedWardrobeItemSearch(item)),
+    [searchableItems],
+  );
 
   const filteredCandidateItems = useMemo(() => {
-    const baseItems = searchableItems.filter((item) => !selectedIds.includes(item.id));
-    const query = search.trim().toLowerCase();
+    const baseItems = indexedSearchableItems.filter((entry) => !selectedIds.includes(entry.item.id));
+    const query = deferredSearch.trim().toLowerCase();
 
     if (!query) {
-      return baseItems;
+      return baseItems.map((entry) => entry.item);
     }
 
-    return baseItems.filter((item) => matchesSearchEntries(getWardrobeItemSearchEntries(item), query));
-  }, [search, searchableItems, selectedIds]);
+    return baseItems
+      .filter((entry) => matchesIndexedSearchEntries(entry.entries, query))
+      .map((entry) => entry.item);
+  }, [deferredSearch, indexedSearchableItems, selectedIds]);
   const suggestionOptions = useMemo(() => {
-    const query = search.trim().toLowerCase();
+    const query = deferredSearch.trim().toLowerCase();
     const pool = new Map<string, { group: SuggestionGroup; value: string }>();
 
-    for (const item of searchableItems) {
-      if (selectedIds.includes(item.id)) continue;
+    for (const item of indexedSearchableItems) {
+      if (selectedIds.includes(item.item.id)) continue;
 
-      for (const entry of buildSuggestionEntries(item)) {
-        if (!query || matchesSearchText([entry.value], query)) {
+      for (const entry of item.suggestions) {
+        if (!query || matchesSearchValue(entry.value, query)) {
           pool.set(`${entry.group}:${entry.value}`, entry);
         }
 
@@ -193,7 +180,7 @@ export function OotdCandidateBuilder({
     }
 
     return Array.from(pool.values());
-  }, [search, searchableItems, selectedIds]);
+  }, [deferredSearch, indexedSearchableItems, selectedIds]);
   const groupedSuggestions = useMemo(() => {
     const order: SuggestionGroup[] = [
       "name",

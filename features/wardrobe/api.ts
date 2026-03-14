@@ -1,6 +1,6 @@
 import { getSessionUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma/client";
-import { getWardrobeItemSearchEntries, matchesSearchEntries } from "@/lib/search/item-search";
+import { getIndexedWardrobeItemSearch, matchesIndexedSearchEntries } from "@/lib/search/item-search";
 import { attachDerivedUsage } from "@/server/services/wardrobe.service";
 import type { Locale } from "@/features/i18n/routing";
 import type { WardrobeItem } from "@/types/item";
@@ -122,8 +122,9 @@ export async function getItems(locale: Locale, query: WardrobeQuery = {}) {
   const filterLocalItems = (items: WardrobeItem[]) =>
     items
       .filter((item) => {
+        const indexedSearch = getIndexedWardrobeItemSearch(item);
         const queryMatch = normalizedQuery.q
-          ? matchesSearchEntries(getWardrobeItemSearchEntries(item), normalizedQuery.q)
+          ? matchesIndexedSearchEntries(indexedSearch.entries, normalizedQuery.q)
           : true;
         const typeMatch =
           !normalizedQuery.type || normalizedQuery.type === "all"

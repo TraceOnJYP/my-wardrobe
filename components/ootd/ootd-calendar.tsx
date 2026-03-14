@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getItemDisplayTitle } from "@/lib/item-display";
@@ -90,12 +91,17 @@ export function OotdCalendar({
     openDetail: string;
     delete: string;
     deleting: string;
+    deleteTitle: string;
+    deleteConfirm: string;
     dailyLimitHint: string;
     fullDay: string;
     fullDayHint: string;
     select: string;
     clearSelection: string;
     deleteSelected: string;
+    deleteSelectedTitle: string;
+    deleteSelectedConfirm: string;
+    cancel: string;
     selectedCount: string;
     moveUp: string;
     moveDown: string;
@@ -111,6 +117,7 @@ export function OotdCalendar({
   const [selectedRecordIds, setSelectedRecordIds] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [movingRecordId, setMovingRecordId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -185,6 +192,7 @@ export function OotdCalendar({
       );
       setSelectedRecordIds([]);
       setSelectionMode(false);
+      setDeleteDialogOpen(false);
       router.refresh();
     } finally {
       setIsDeleting(false);
@@ -348,7 +356,7 @@ export function OotdCalendar({
                   </Button>
                   <Button
                     type="button"
-                    onClick={deleteSelectedRecords}
+                    onClick={() => setDeleteDialogOpen(true)}
                     disabled={selectedRecordIds.length === 0 || isDeleting}
                   >
                     {isDeleting ? labels.deleting : labels.deleteSelected}
@@ -374,9 +382,20 @@ export function OotdCalendar({
                 </>
               )}
             </div>
-          </div>
+        </div>
 
-          {activeDay?.records.length ? (
+        <ConfirmDialog
+          open={deleteDialogOpen}
+          title={labels.deleteSelectedTitle}
+          description={labels.deleteSelectedConfirm}
+          confirmLabel={labels.deleteSelected}
+          cancelLabel={labels.cancel}
+          isPending={isDeleting}
+          onConfirm={deleteSelectedRecords}
+          onCancel={() => setDeleteDialogOpen(false)}
+        />
+
+        {activeDay?.records.length ? (
             <div className="flex-1 space-y-3">
               {selectionMode ? (
                 <div className="text-xs text-[hsl(var(--muted-foreground))]">

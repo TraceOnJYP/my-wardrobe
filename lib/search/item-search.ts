@@ -32,6 +32,31 @@ type SearchEntry = {
   value?: string;
 };
 
+type IndexedSearchEntry = {
+  field: SearchField;
+  value: string;
+  tokens: string[];
+};
+
+type SuggestionGroup =
+  | "name"
+  | "brand"
+  | "category"
+  | "color"
+  | "designElements"
+  | "material"
+  | "style"
+  | "scenario"
+  | "season"
+  | "tags";
+
+export type IndexedWardrobeItemSearch = {
+  item: WardrobeItem;
+  entries: IndexedSearchEntry[];
+  allTokens: string[];
+  suggestions: Array<{ group: SuggestionGroup; value: string }>;
+};
+
 type AliasGroup = {
   fields: SearchField[];
   aliases: string[];
@@ -87,6 +112,8 @@ const SEARCH_ALIAS_GROUPS: AliasGroup[] = [
 const ALL_ALIAS_TOKENS = Array.from(
   new Set(SEARCH_ALIAS_GROUPS.flatMap((group) => group.aliases.map(normalize))),
 ).sort((left, right) => right.length - left.length);
+const indexedItemCache = new Map<string, IndexedWardrobeItemSearch>();
+const indexedTextCache = new Map<string, string[]>();
 
 function tokenize(text: string) {
   return [...(text.match(CJK_TOKEN_RE) ?? []), ...(text.match(LATIN_TOKEN_RE) ?? [])];
@@ -239,6 +266,12 @@ function expandSearchTokens(value: string, field: SearchField = "generic") {
   const normalized = normalize(value);
   if (!normalized) return [];
 
+  const cacheKey = `${field}:${normalized}`;
+  const cached = indexedTextCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const tokens = new Set<string>([normalized]);
 
   for (const part of tokenize(normalized)) {
@@ -257,7 +290,9 @@ function expandSearchTokens(value: string, field: SearchField = "generic") {
     tokens.add(aliasToken);
   }
 
-  return Array.from(tokens).filter(Boolean);
+  const expanded = Array.from(tokens).filter(Boolean);
+  indexedTextCache.set(cacheKey, expanded);
+  return expanded;
 }
 
 export function expandSearchTerms(query: string) {
@@ -284,6 +319,20 @@ export function matchesSearchText(values: Array<string | undefined>, query: stri
   return matchesSearchEntries(values.map((value) => ({ field: "generic" as const, value })), query);
 }
 
+export function matchesSearchValue(value: string | undefined, query: string) {
+  if (!value?.trim()) return false;
+  return matchesIndexedSearchEntries(
+    [
+      {
+        field: "generic",
+        value: value.trim(),
+        tokens: expandSearchTokens(value, "generic"),
+      },
+    ],
+    query,
+  );
+}
+
 export function matchesSearchEntries(entries: SearchEntry[], query: string) {
   const normalizedQuery = normalize(query);
   if (!normalizedQuery) return true;
@@ -296,6 +345,30 @@ export function matchesSearchEntries(entries: SearchEntry[], query: string) {
       field: entry.field,
       tokens: expandSearchTokens(entry.value!, entry.field),
     }));
+  const allIndexedTokens = indexedEntries.flatMap((entry) => entry.tokens);
+
+  return searchableParts.every((part) => {
+    const queryTokens = expandSearchTokens(part);
+
+    if (
+      indexedEntries.some((entry) =>
+        queryTokens.some((queryToken) => entry.tokens.includes(queryToken)),
+      )
+    ) {
+      return true;
+    }
+
+    return queryTokens.some((queryToken) => canSegmentByTokens(queryToken, allIndexedTokens)) ||
+      canSegmentByTokens(part, allIndexedTokens);
+  });
+}
+
+export function matchesIndexedSearchEntries(indexedEntries: IndexedSearchEntry[], query: string) {
+  const normalizedQuery = normalize(query);
+  if (!normalizedQuery) return true;
+
+  const queryParts = splitQueryIntoTerms(normalizedQuery);
+  const searchableParts = queryParts.length > 0 ? queryParts : [normalizedQuery];
   const allIndexedTokens = indexedEntries.flatMap((entry) => entry.tokens);
 
   return searchableParts.every((part) => {
@@ -349,4 +422,54 @@ export function getWardrobeItemSearchEntries(item: WardrobeItem): SearchEntry[] 
     ...item.season.map((value) => ({ field: "season" as const, value })),
     ...item.tags.map((value) => ({ field: "tags" as const, value })),
   ];
+}
+
+export function buildWardrobeItemSuggestions(item: WardrobeItem) {
+  const entries: Array<{ group: SuggestionGroup; value: string }> = [];
+
+  if (item.name?.trim()) entries.push({ group: "name", value: item.name.trim() });
+  if (item.brand?.trim()) entries.push({ group: "brand", value: item.brand.trim() });
+  if (item.category?.trim()) entries.push({ group: "category", value: item.category.trim() });
+  if (item.subcategory?.trim()) entries.push({ group: "category", value: item.subcategory.trim() });
+  if (item.color?.trim()) entries.push({ group: "color", value: item.color.trim() });
+  if (item.designElements?.trim()) entries.push({ group: "designElements", value: item.designElements.trim() });
+  if (item.material?.trim()) entries.push({ group: "material", value: item.material.trim() });
+  if (item.style?.trim()) entries.push({ group: "style", value: item.style.trim() });
+  if (item.scenario?.trim()) entries.push({ group: "scenario", value: item.scenario.trim() });
+
+  for (const season of item.season) {
+    if (season?.trim()) entries.push({ group: "season", value: season.trim() });
+  }
+
+  for (const tag of item.tags) {
+    if (tag?.trim()) entries.push({ group: "tags", value: tag.trim() });
+  }
+
+  return entries;
+}
+
+export function getIndexedWardrobeItemSearch(item: WardrobeItem): IndexedWardrobeItemSearch {
+  const cacheKey = `${item.id}:${item.updatedAt}`;
+  const cached = indexedItemCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const entries = getWardrobeItemSearchEntries(item)
+    .filter((entry): entry is { field: SearchField; value: string } => Boolean(entry.value?.trim()))
+    .map((entry) => ({
+      field: entry.field,
+      value: entry.value.trim(),
+      tokens: expandSearchTokens(entry.value, entry.field),
+    }));
+
+  const indexed = {
+    item,
+    entries,
+    allTokens: entries.flatMap((entry) => entry.tokens),
+    suggestions: buildWardrobeItemSuggestions(item),
+  };
+
+  indexedItemCache.set(cacheKey, indexed);
+  return indexed;
 }

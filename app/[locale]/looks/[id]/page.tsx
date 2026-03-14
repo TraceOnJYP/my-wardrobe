@@ -33,10 +33,14 @@ export default async function LookDetailPage({
         subtitle: dict.looks.detailSubtitle,
         back: dict.looks.back,
         edit: dict.looks.edit,
+        look: dict.looks.dailyFallback,
+        usedDates: dict.looks.usedDates,
+        noUsedDates: dict.looks.noUsedDates,
       }}
       pageTitle={dict.looks.title}
       backHref={`/${locale}/looks`}
       editHref={`/${locale}/looks/${record.id}/edit`}
+      mode="look"
     />
   );
 }

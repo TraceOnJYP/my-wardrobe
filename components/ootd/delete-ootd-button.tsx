@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Button } from "@/components/ui/button";
 
 export function DeleteOotdButton({
@@ -9,6 +10,9 @@ export function DeleteOotdButton({
   redirectHref,
   label,
   pendingLabel,
+  confirmLabel,
+  cancelLabel,
+  confirmTitle,
   variant = "outline",
   className,
   onDeleted,
@@ -17,6 +21,9 @@ export function DeleteOotdButton({
   redirectHref?: string;
   label: string;
   pendingLabel: string;
+  confirmLabel: string;
+  cancelLabel: string;
+  confirmTitle: string;
   variant?: "outline" | "ghost";
   className?: string;
   onDeleted?: () => void;
@@ -24,6 +31,7 @@ export function DeleteOotdButton({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
   const handleDelete = () => {
     startTransition(async () => {
@@ -37,6 +45,7 @@ export function DeleteOotdButton({
         return;
       }
 
+      setOpen(false);
       onDeleted?.();
 
       if (redirectHref) {
@@ -49,9 +58,19 @@ export function DeleteOotdButton({
 
   return (
     <div className="space-y-2">
-      <Button type="button" variant={variant} className={className} onClick={handleDelete} disabled={isPending}>
+      <Button type="button" variant={variant} className={className} onClick={() => setOpen(true)} disabled={isPending}>
         {isPending ? pendingLabel : label}
       </Button>
+      <ConfirmDialog
+        open={open}
+        title={confirmTitle}
+        description={confirmLabel}
+        confirmLabel={label}
+        cancelLabel={cancelLabel}
+        isPending={isPending}
+        onConfirm={handleDelete}
+        onCancel={() => setOpen(false)}
+      />
       {error ? <div className="text-xs text-red-700">{error}</div> : null}
     </div>
   );

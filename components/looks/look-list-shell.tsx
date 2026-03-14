@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getItemDisplayTitle } from "@/lib/item-display";
@@ -30,7 +31,13 @@ export function LookListShell({
     selectedCount: string;
     addToDay: string;
     addingToDay: string;
+    deleteSelected: string;
+    deletingSelected: string;
+    deleteSelectedTitle: string;
+    deleteSelectedConfirm: string;
+    cancel: string;
     addError: string;
+    deleteError: string;
     wearDate: string;
     empty: string;
     dailyFallback: string;
@@ -44,6 +51,8 @@ export function LookListShell({
   const [wearDate, setWearDate] = useState(new Date().toISOString().slice(0, 10));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isDeleting, startDeleteTransition] = useTransition();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const selectedCount = selectedIds.length;
   const canAddToDay = selectedCount > 0 && wearDate;
@@ -75,6 +84,34 @@ export function LookListShell({
     });
   };
 
+  const deleteSelectedLooks = () => {
+    if (selectedCount === 0) return;
+
+    startDeleteTransition(async () => {
+      setErrorMessage(null);
+
+      const results = await Promise.all(
+        selectedIds.map(async (recordId) => {
+          const response = await fetch(`/api/ootd/${recordId}`, {
+            method: "DELETE",
+          });
+
+          return response.ok;
+        }),
+      );
+
+      if (results.some((ok) => !ok)) {
+        setErrorMessage(labels.deleteError);
+        return;
+      }
+
+      setSelectedIds([]);
+      setSelectionMode(false);
+      setDeleteDialogOpen(false);
+      router.refresh();
+    });
+  };
+
   const toggleSelection = (recordId: string) => {
     setSelectedIds((current) =>
       current.includes(recordId) ? current.filter((id) => id !== recordId) : [...current, recordId],
@@ -102,6 +139,14 @@ export function LookListShell({
               </label>
               <Button type="button" onClick={addSelectedToDay} disabled={!canAddToDay || isPending}>
                 {isPending ? labels.addingToDay : labels.addToDay}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(true)}
+                disabled={selectedCount === 0 || isDeleting}
+              >
+                {isDeleting ? labels.deletingSelected : labels.deleteSelected}
               </Button>
               <Button
                 type="button"
@@ -139,6 +184,17 @@ export function LookListShell({
         </div>
       ) : null}
 
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        title={labels.deleteSelectedTitle}
+        description={labels.deleteSelectedConfirm}
+        confirmLabel={labels.deleteSelected}
+        cancelLabel={labels.cancel}
+        isPending={isDeleting}
+        onConfirm={deleteSelectedLooks}
+        onCancel={() => setDeleteDialogOpen(false)}
+      />
+
       {records.length === 0 ? (
         <Card className="p-6 text-sm text-[hsl(var(--muted-foreground))]">{labels.empty}</Card>
       ) : (
@@ -161,8 +217,8 @@ export function LookListShell({
                     {record.items.length} {labels.items}
                   </div>
                   <div className="space-y-1 text-sm text-[hsl(var(--muted-foreground))]">
-                    {itemTitles.map((title) => (
-                      <div key={title} className="truncate">
+                    {itemTitles.map((title, index) => (
+                      <div key={`${record.id}-${index}-${title}`} className="truncate">
                         {title}
                       </div>
                     ))}

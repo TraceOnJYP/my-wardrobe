@@ -71,6 +71,7 @@ export const authService = {
 
     return prisma.$transaction(async (tx) => {
       const wardrobeIdMap = new Map<string, string>();
+      const recordIdMap = new Map<string, string>();
 
       for (const item of demoItems) {
         const cloned = await tx.wardrobeItem.create({
@@ -121,6 +122,7 @@ export const authService = {
             userId,
             clientId: record.clientId,
             recordType: record.recordType,
+            sourceLookId: null,
             wearDate: record.wearDate,
             displayOrder: record.displayOrder,
             scenario: record.scenario,
@@ -131,6 +133,8 @@ export const authService = {
             updatedAt: record.updatedAt,
           },
         });
+
+        recordIdMap.set(record.id, clonedRecord.id);
 
         const clonedItems = record.ootdItems
           .map((ootdItem) => {
@@ -154,6 +158,20 @@ export const authService = {
             data: clonedItems,
           });
         }
+      }
+
+      for (const record of demoOotdRecords) {
+        if (!record.sourceLookId) continue;
+
+        const clonedRecordId = recordIdMap.get(record.id);
+        const clonedSourceLookId = recordIdMap.get(record.sourceLookId);
+
+        if (!clonedRecordId || !clonedSourceLookId) continue;
+
+        await tx.ootdRecord.update({
+          where: { id: clonedRecordId },
+          data: { sourceLookId: clonedSourceLookId },
+        });
       }
 
       return {

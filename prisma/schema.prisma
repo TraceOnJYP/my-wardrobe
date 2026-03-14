@@ -145,6 +145,7 @@ model OotdRecord {
   userId       String         @db.Uuid
   clientId     String?        @db.Uuid
   recordType   OotdRecordType @default(daily)
+  sourceLookId String?        @db.Uuid
   wearDate     DateTime       @db.Date
   displayOrder Int      @default(0)
   scenario     String?        @db.VarChar(80)
@@ -160,6 +161,7 @@ model OotdRecord {
   @@unique([userId, clientId])
   @@index([userId, wearDate])
   @@index([userId, recordType])
+  @@index([sourceLookId])
   @@index([userId, wearDate, displayOrder])
   @@map("ootd_records")
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import type { WardrobeItem } from "@/types/item";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -45,6 +46,10 @@ interface FormDictionary {
 interface DetailDictionary {
   back: string;
   edit: string;
+  delete: string;
+  deleting: string;
+  deleteTitle: string;
+  deleteConfirm: string;
   cancel: string;
   overview: string;
   attributes: string;
@@ -105,6 +110,8 @@ export function ItemDetailShell({
   const [currentItem, setCurrentItem] = useState(item);
   const [isEditing, setIsEditing] = useState(false);
   const [isImageOpen, setIsImageOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const tags = currentItem.tags?.filter(Boolean) ?? [];
   const categoryLabel =
     (currentItem.itemType && formDict.categories[currentItem.itemType as CategoryKey]) || currentItem.category;
@@ -120,6 +127,26 @@ export function ItemDetailShell({
     }
 
     router.push(`/${locale}/wardrobe`);
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+
+    try {
+      const response = await fetch(`/api/items/${itemId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      setIsDeleteDialogOpen(false);
+      router.push(`/${locale}/wardrobe`);
+      router.refresh();
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (isEditing) {
@@ -152,10 +179,26 @@ export function ItemDetailShell({
         <Button type="button" variant="outline" onClick={handleBack}>
           {detailDict.back}
         </Button>
-        <Button type="button" onClick={() => setIsEditing(true)}>
-          {detailDict.edit}
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button type="button" variant="outline" onClick={() => setIsDeleteDialogOpen(true)}>
+            {detailDict.delete}
+          </Button>
+          <Button type="button" onClick={() => setIsEditing(true)}>
+            {detailDict.edit}
+          </Button>
+        </div>
       </div>
+
+      <ConfirmDialog
+        open={isDeleteDialogOpen}
+        title={detailDict.deleteTitle}
+        description={detailDict.deleteConfirm}
+        confirmLabel={detailDict.delete}
+        cancelLabel={detailDict.cancel}
+        isPending={isDeleting}
+        onConfirm={handleDelete}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+      />
 
       <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
         <Card className="space-y-5 p-6">

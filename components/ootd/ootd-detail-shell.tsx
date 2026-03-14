@@ -24,6 +24,7 @@ export function OotdDetailShell({
   pageTitle,
   backHref,
   editHref,
+  mode = "daily",
 }: {
   locale: string;
   month?: string;
@@ -31,6 +32,7 @@ export function OotdDetailShell({
   pageTitle: string;
   backHref?: string;
   editHref?: string;
+  mode?: "daily" | "look";
   labels: {
     title: string;
     subtitle: string;
@@ -38,10 +40,16 @@ export function OotdDetailShell({
     edit: string;
     delete: string;
     deleting: string;
+    cancel: string;
+    deleteTitle: string;
+    deleteConfirm: string;
     recordLabel: string;
     daily: string;
+    look?: string;
     overview: string;
     date: string;
+    usedDates?: string;
+    noUsedDates?: string;
     scenario: string;
     count: string;
     items: string;
@@ -50,11 +58,23 @@ export function OotdDetailShell({
     itemsTitle: string;
     itemsSubtitle: string;
     viewItem: string;
+    moveUp?: string;
+    moveDown?: string;
+    selectedCount?: string;
+    select?: string;
+    clearSelection?: string;
+    deleteSelected?: string;
+    itemCount?: string;
+    editTitle?: string;
+    editSubtitle?: string;
+    saveEdit?: string;
   };
 }) {
   const [isImageOpen, setIsImageOpen] = useState(false);
   const resolvedBackHref = backHref ?? (month ? `/${locale}/ootd?month=${month}` : `/${locale}/ootd`);
   const resolvedEditHref = editHref ?? (month ? `/${locale}/ootd/${record.id}/edit?month=${month}` : `/${locale}/ootd/${record.id}/edit`);
+  const usedDates = record.usedDates ?? [];
+  const heading = mode === "look" ? (record.scenario || labels.look || pageTitle) : formatDate(record.wearDate, locale);
 
   return (
     <div className="space-y-6">
@@ -75,6 +95,9 @@ export function OotdDetailShell({
             redirectHref={resolvedBackHref}
             label={labels.delete}
             pendingLabel={labels.deleting}
+            confirmLabel={labels.deleteConfirm}
+            confirmTitle={labels.deleteTitle}
+            cancelLabel={labels.cancel}
           />
           <Link
             href={resolvedBackHref}
@@ -92,9 +115,9 @@ export function OotdDetailShell({
               <div className="text-xs uppercase tracking-[0.12em] text-[hsl(var(--muted-foreground))]">
                 {labels.recordLabel}
               </div>
-              <h2 className="text-2xl font-semibold">{formatDate(record.wearDate, locale)}</h2>
+              <h2 className="text-2xl font-semibold">{heading}</h2>
               <div className="text-sm text-[hsl(var(--muted-foreground))]">
-                {record.scenario || labels.daily}
+                {mode === "look" ? labels.look || pageTitle : record.scenario || labels.daily}
               </div>
             </div>
             {record.imageUrl ? (
@@ -117,13 +140,22 @@ export function OotdDetailShell({
           <div className="rounded-[22px] border border-white/70 bg-white/72 p-4">
             <div className="mb-3 text-sm font-semibold">{labels.overview}</div>
             <div className="grid gap-3 text-sm">
-              <div className="grid grid-cols-[92px_1fr] gap-3">
-                <div className="text-[hsl(var(--muted-foreground))]">{labels.date}</div>
-                <div className="font-medium">{formatDate(record.wearDate, locale)}</div>
-              </div>
+              {mode === "look" ? (
+                <div className="grid grid-cols-[92px_1fr] gap-3">
+                  <div className="text-[hsl(var(--muted-foreground))]">{labels.usedDates ?? labels.date}</div>
+                  <div className="font-medium">
+                    {usedDates.length > 0 ? usedDates.join(" / ") : labels.noUsedDates ?? labels.noNotes}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-[92px_1fr] gap-3">
+                  <div className="text-[hsl(var(--muted-foreground))]">{labels.date}</div>
+                  <div className="font-medium">{formatDate(record.wearDate, locale)}</div>
+                </div>
+              )}
               <div className="grid grid-cols-[92px_1fr] gap-3">
                 <div className="text-[hsl(var(--muted-foreground))]">{labels.scenario}</div>
-                <div className="font-medium">{record.scenario || labels.daily}</div>
+                <div className="font-medium">{record.scenario || (mode === "look" ? labels.look || pageTitle : labels.daily)}</div>
               </div>
               <div className="grid grid-cols-[92px_1fr] gap-3">
                 <div className="text-[hsl(var(--muted-foreground))]">{labels.count}</div>

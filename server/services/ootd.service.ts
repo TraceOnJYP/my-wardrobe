@@ -7,10 +7,12 @@ function mapOotdRecord(record: {
   id: string;
   wearDate: Date;
   recordType: "daily" | "look";
+  sourceLookId?: string | null;
   displayOrder: number;
   scenario: string | null;
   notes: string | null;
   imageUrl: string | null;
+  usedDates?: string[];
   ootdItems: Array<{
     wardrobeItem: {
       id: string;
@@ -33,10 +35,12 @@ function mapOotdRecord(record: {
     id: record.id,
     wearDate: record.wearDate.toISOString().slice(0, 10),
     recordType: record.recordType,
+    sourceLookId: record.sourceLookId ?? undefined,
     displayOrder: record.displayOrder,
     scenario: record.scenario ?? undefined,
     notes: record.notes ?? undefined,
     imageUrl: record.imageUrl ?? undefined,
+    usedDates: record.usedDates,
     itemIds: record.ootdItems.map((item) => item.wardrobeItem.id),
     itemTitles: record.ootdItems.map((item) => item.wardrobeItem.name),
     items: record.ootdItems.map((item) => ({
@@ -61,6 +65,40 @@ function mapOotdRecord(record: {
 }
 
 export const ootdService = {
+  async getLookUsedDates(params: { userId: string; lookIds: string[] }) {
+    if (params.lookIds.length === 0) {
+      return new Map<string, string[]>();
+    }
+
+    const records = await prisma.ootdRecord.findMany({
+      where: {
+        userId: params.userId,
+        recordType: "daily",
+        sourceLookId: { in: params.lookIds },
+        deletedAt: null,
+      },
+      orderBy: [{ wearDate: "desc" }, { createdAt: "desc" }],
+      select: {
+        sourceLookId: true,
+        wearDate: true,
+      },
+    });
+
+    const usedDatesByLookId = new Map<string, string[]>();
+
+    for (const record of records) {
+      if (!record.sourceLookId) continue;
+      const dateKey = record.wearDate.toISOString().slice(0, 10);
+      const current = usedDatesByLookId.get(record.sourceLookId) ?? [];
+      if (!current.includes(dateKey)) {
+        current.push(dateKey);
+        usedDatesByLookId.set(record.sourceLookId, current);
+      }
+    }
+
+    return usedDatesByLookId;
+  },
+
   getDayRange(wearDate: Date) {
     const start = new Date(Date.UTC(wearDate.getUTCFullYear(), wearDate.getUTCMonth(), wearDate.getUTCDate()));
     const end = new Date(Date.UTC(wearDate.getUTCFullYear(), wearDate.getUTCMonth(), wearDate.getUTCDate() + 1));
@@ -157,6 +195,7 @@ export const ootdService = {
         userId: params.userId,
         clientId: params.input.clientId,
         recordType,
+        sourceLookId: null,
         wearDate: start,
         displayOrder: nextDisplayOrder,
         scenario: params.input.scenario,
@@ -274,6 +313,7 @@ export const ootdService = {
       },
       data: {
         recordType,
+        sourceLookId: recordType === "look" ? null : existing.sourceLookId,
         wearDate: start,
         displayOrder: nextDisplayOrder,
         scenario: params.input.scenario,
@@ -474,7 +514,17 @@ export const ootdService = {
       },
     });
 
-    return records.map((record) => mapOotdRecord(record));
+    const usedDatesByLookId = await this.getLookUsedDates({
+      userId: params.userId,
+      lookIds: records.map((record) => record.id),
+    });
+
+    return records.map((record) =>
+      mapOotdRecord({
+        ...record,
+        usedDates: usedDatesByLookId.get(record.id) ?? [],
+      }),
+    );
   },
 
   async getRecord(params: { userId: string; recordId: string }) {
@@ -512,7 +562,19 @@ export const ootdService = {
       },
     });
 
-    return record ? mapOotdRecord(record) : null;
+    if (!record) {
+      return null;
+    }
+
+    const usedDates =
+      record.recordType === "look"
+        ? (await this.getLookUsedDates({ userId: params.userId, lookIds: [record.id] })).get(record.id) ?? []
+        : undefined;
+
+    return mapOotdRecord({
+      ...record,
+      usedDates,
+    });
   },
 
   async addLooksToDay(params: { userId: string; lookIds: string[]; wearDate: string }) {
@@ -559,6 +621,7 @@ export const ootdService = {
           data: {
             userId: params.userId,
             recordType: "daily",
+            sourceLookId: look.id,
             wearDate: start,
             displayOrder: nextDisplayOrder++,
             scenario: look.scenario,

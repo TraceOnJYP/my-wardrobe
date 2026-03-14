@@ -4,12 +4,14 @@ export interface OotdRecord {
   id: string;
   wearDate: string;
   recordType?: "daily" | "look";
+  sourceLookId?: string;
   displayOrder?: number;
   scenario?: string;
   notes?: string;
   itemIds: string[];
   imageUrl?: string;
   itemTitles: string[];
+  usedDates?: string[];
   items: Array<
     Pick<
       WardrobeItem,

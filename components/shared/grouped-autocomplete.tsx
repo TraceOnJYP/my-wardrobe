@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { matchesSearchText } from "@/lib/search/item-search";
+import { matchesSearchValue } from "@/lib/search/item-search";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils/cn";
 
@@ -95,7 +95,7 @@ export function GroupedAutocomplete({
       .map((group) => ({
         ...group,
         options: query
-          ? group.options.filter((option) => matchesSearchText([option], query)).slice(0, 6)
+          ? group.options.filter((option) => matchesSearchValue(option, query)).slice(0, 6)
           : group.options.slice(0, 6),
       }))
       .filter((group) => group.options.length > 0);

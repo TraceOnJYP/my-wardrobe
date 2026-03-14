@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AddToCandidatesButton } from "@/components/ootd/add-to-candidates-button";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { HighlightedText } from "@/components/shared/highlighted-text";
 import { ItemHoverDetails } from "@/components/shared/item-hover-details";
 import { Button } from "@/components/ui/button";
@@ -179,6 +180,9 @@ export function WardrobeList({
     clearSelection: string;
     deleteSelected: string;
     deleting: string;
+    deleteSelectedTitle: string;
+    deleteSelectedConfirm: string;
+    cancel: string;
     selectAll: string;
     selectRow: string;
     subcategory: string;
@@ -228,6 +232,7 @@ export function WardrobeList({
   const searchParams = useSearchParams();
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [isColumnPickerOpen, setIsColumnPickerOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [visibleColumns, setVisibleColumns] = useState<ColumnId[]>(DEFAULT_VISIBLE_COLUMNS);
   const [pageSize, setPageSize] = useState(20);
@@ -409,6 +414,7 @@ export function WardrobeList({
 
       setSelectedIds([]);
       setIsSelectionMode(false);
+      setDeleteDialogOpen(false);
       router.refresh();
     });
   };
@@ -569,7 +575,7 @@ export function WardrobeList({
               </Button>
               <Button
                 type="button"
-                onClick={deleteSelected}
+                onClick={() => setDeleteDialogOpen(true)}
                 disabled={selectedIds.length === 0 || isPending}
                 className="bg-[hsl(8_72%_56%)] text-white hover:bg-[hsl(8_72%_50%)]"
               >
@@ -579,6 +585,17 @@ export function WardrobeList({
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        title={labels.deleteSelectedTitle}
+        description={labels.deleteSelectedConfirm}
+        confirmLabel={labels.deleteSelected}
+        cancelLabel={labels.cancel}
+        isPending={isPending}
+        onConfirm={deleteSelected}
+        onCancel={() => setDeleteDialogOpen(false)}
+      />
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[rgba(217,204,191,0.5)] bg-[rgba(255,252,248,0.82)] px-5 py-3 text-sm">
         <div className="text-[hsl(var(--muted-foreground))]">
