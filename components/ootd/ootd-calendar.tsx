@@ -281,6 +281,8 @@ export function OotdCalendar({
                           "min-h-[112px] rounded-[22px] border p-2.5 shadow-[0_10px_25px_rgba(77,57,36,0.05)] transition",
                           isActive
                             ? "border-[hsl(var(--primary))] bg-[rgba(255,247,238,0.98)]"
+                            : day.isToday
+                              ? "border-[rgba(214,154,97,0.38)] bg-[rgba(255,244,235,0.9)] hover:bg-[rgba(255,248,242,0.96)]"
                             : "border-white/65 bg-white/78 hover:bg-white/88",
                         ].join(" ")
                       : "min-h-[112px] rounded-[22px] border border-white/45 bg-white/45 p-2.5 opacity-55"
@@ -317,14 +319,6 @@ export function OotdCalendar({
                           {labels.noImage}
                         </div>
                       )}
-                      <div className="line-clamp-1 text-[11px] font-medium">
-                        {day.records[0].itemTitles.slice(0, 2).join(" · ") || day.records[0].scenario || labels.title}
-                      </div>
-                      {day.records.length > 1 ? (
-                        <div className="text-[10px] text-[hsl(var(--muted-foreground))]">
-                          +{day.records.length - 1} {labels.more}
-                        </div>
-                      ) : null}
                     </div>
                   ) : null}
                 </Link>
