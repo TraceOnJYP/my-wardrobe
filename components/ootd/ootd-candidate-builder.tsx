@@ -1,14 +1,19 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import { AddToCandidatesButton } from "@/components/ootd/add-to-candidates-button";
 import { OotdComposer } from "@/components/ootd/ootd-composer";
 import { ItemSearchInput } from "@/components/search/item-search-input";
 import { ItemHoverDetails } from "@/components/shared/item-hover-details";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getItemDisplaySubtitle, getItemDisplayTitle } from "@/lib/item-display";
-import { addOotdCandidate, clearOotdCandidates, getOotdCandidates, onOotdCandidatesChanged } from "@/lib/ootd-candidates";
+import {
+  addOotdCandidate,
+  clearOotdCandidates,
+  getOotdCandidates,
+  onOotdCandidatesChanged,
+  removeOotdCandidate,
+} from "@/lib/ootd-candidates";
 import {
   getIndexedWardrobeItemSearch,
   matchesIndexedSearchEntries,
@@ -150,24 +155,21 @@ export function OotdCandidateBuilder({
   );
 
   const filteredCandidateItems = useMemo(() => {
-    const baseItems = indexedSearchableItems.filter((entry) => !selectedIds.includes(entry.item.id));
     const query = deferredSearch.trim().toLowerCase();
 
     if (!query) {
-      return baseItems.map((entry) => entry.item);
+      return indexedSearchableItems.map((entry) => entry.item);
     }
 
-    return baseItems
+    return indexedSearchableItems
       .filter((entry) => matchesIndexedSearchEntries(entry.entries, query))
       .map((entry) => entry.item);
-  }, [deferredSearch, indexedSearchableItems, selectedIds]);
+  }, [deferredSearch, indexedSearchableItems]);
   const suggestionOptions = useMemo(() => {
     const query = deferredSearch.trim().toLowerCase();
     const pool = new Map<string, { group: SuggestionGroup; value: string }>();
 
     for (const item of indexedSearchableItems) {
-      if (selectedIds.includes(item.item.id)) continue;
-
       for (const entry of item.suggestions) {
         if (!query || matchesSearchValue(entry.value, query)) {
           pool.set(`${entry.group}:${entry.value}`, entry);
@@ -232,14 +234,28 @@ export function OotdCandidateBuilder({
     });
   };
 
+  const removeFromPool = (itemId: string) => {
+    removeOotdCandidate(itemId);
+    setSelectedIds((current) => current.filter((id) => id !== itemId));
+    setPendingScrollItemId(null);
+  };
+
   const selectFromSearchResult = (item: WardrobeItem) => {
-    addOotdCandidate(item);
-    setPendingScrollItemId(item.id);
+    const existsInPool = items.some((entry) => entry.id === item.id);
+    if (!existsInPool) {
+      addOotdCandidate(item);
+      setPendingScrollItemId(item.id);
+    } else {
+      setPendingScrollItemId(item.id);
+    }
+
     setSelectedIds((current) => {
-      if (current.includes(item.id) || current.length >= MAX_SELECTED_ITEMS) {
+      if (current.includes(item.id)) {
+        return current.filter((id) => id !== item.id);
+      }
+      if (current.length >= MAX_SELECTED_ITEMS) {
         return current;
       }
-
       return [...current, item.id];
     });
   };
@@ -289,41 +305,56 @@ export function OotdCandidateBuilder({
                   const isSelected = selectedIds.includes(item.id);
 
                   return (
-                    <button
+                    <div
                       key={item.id}
                       ref={(node) => {
                         candidateItemRefs.current[item.id] = node;
                       }}
-                      type="button"
-                      onClick={() => toggleItemSelection(item.id)}
                       className={
                         isSelected
-                          ? "w-[132px] shrink-0 snap-start rounded-[20px] border border-[hsl(var(--primary))] bg-[hsl(var(--primary))] p-3 text-left text-[hsl(var(--primary-foreground))] shadow-[0_12px_24px_rgba(77,57,36,0.18)] transition"
-                          : "w-[132px] shrink-0 snap-start rounded-[20px] border border-white/70 bg-white/82 p-3 text-left shadow-[0_8px_18px_rgba(77,57,36,0.06)] transition hover:border-[rgba(214,154,97,0.4)]"
+                          ? "relative w-[132px] shrink-0 snap-start rounded-[20px] border border-[hsl(var(--primary))] bg-[hsl(var(--primary))] p-3 text-left text-[hsl(var(--primary-foreground))] shadow-[0_12px_24px_rgba(77,57,36,0.18)] transition"
+                          : "relative w-[132px] shrink-0 snap-start rounded-[20px] border border-white/70 bg-white/82 p-3 text-left shadow-[0_8px_18px_rgba(77,57,36,0.06)] transition hover:border-[rgba(214,154,97,0.4)]"
                       }
                     >
-                      {item.imageUrl ? (
-                        <img
-                          src={item.imageUrl}
-                          alt={item.name}
-                          className="h-20 w-full rounded-[16px] object-cover"
-                        />
-                      ) : (
-                        <div className="h-20 w-full rounded-[16px] bg-[linear-gradient(160deg,#ead6c1,#f7f1e8)]" />
-                      )}
-                      <div className="group/details relative mt-2 inline-block max-w-full">
-                        <div
-                          className={
-                            isSelected
-                              ? "truncate text-sm font-semibold text-[hsl(var(--primary-foreground))]"
-                              : "truncate text-sm font-semibold text-[hsl(var(--foreground))]"
-                          }
-                        >
-                          {getItemDisplayTitle(item, "", "")}
+                      <button type="button" onClick={() => toggleItemSelection(item.id)} className="block w-full text-left">
+                        {item.imageUrl ? (
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="h-20 w-full rounded-[16px] object-cover"
+                          />
+                        ) : (
+                          <div className="h-20 w-full rounded-[16px] bg-[linear-gradient(160deg,#ead6c1,#f7f1e8)]" />
+                        )}
+                        <div className="group/details relative mt-2 inline-block max-w-full">
+                          <div
+                            className={
+                              isSelected
+                                ? "truncate text-sm font-semibold text-[hsl(var(--primary-foreground))]"
+                                : "truncate text-sm font-semibold text-[hsl(var(--foreground))]"
+                            }
+                          >
+                            {getItemDisplayTitle(item, "", "")}
+                          </div>
+                          <ItemHoverDetails item={item} labels={labels.composer.detailFields} />
                         </div>
-                        <ItemHoverDetails item={item} labels={labels.composer.detailFields} />
-                      </div>
-                    </button>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          removeFromPool(item.id);
+                        }}
+                        className={
+                          isSelected
+                            ? "absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-base font-semibold text-[hsl(var(--primary))] shadow-[0_6px_14px_rgba(77,57,36,0.16)] transition hover:bg-[rgba(255,232,214,0.98)]"
+                            : "absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[rgba(255,248,241,0.98)] text-base font-semibold text-[hsl(var(--foreground))] shadow-[0_6px_14px_rgba(77,57,36,0.1)] transition hover:bg-[rgba(239,219,201,0.98)]"
+                        }
+                        aria-label={labels.remove}
+                      >
+                        -
+                      </button>
+                    </div>
                   );
                 })}
               </div>
@@ -358,7 +389,11 @@ export function OotdCandidateBuilder({
                   {pagedCandidateItems.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center gap-3 rounded-[20px] border border-white/70 bg-white/80 p-3"
+                      className={
+                        selectedIds.includes(item.id)
+                          ? "flex items-center gap-3 rounded-[20px] border border-[hsl(var(--primary))] bg-[rgba(255,247,238,0.96)] p-3 shadow-[0_10px_22px_rgba(77,57,36,0.1)]"
+                          : "flex items-center gap-3 rounded-[20px] border border-white/70 bg-white/80 p-3"
+                      }
                     >
                       <button
                         type="button"
@@ -371,7 +406,15 @@ export function OotdCandidateBuilder({
                           <div className="h-14 w-12 rounded-[14px] bg-[linear-gradient(160deg,#ead6c1,#f7f1e8)]" />
                         )}
                         <div className="min-w-0 flex-1">
-                          <div className="truncate font-medium">{getItemDisplayTitle(item, "", "")}</div>
+                          <div
+                            className={
+                              selectedIds.includes(item.id)
+                                ? "truncate font-medium text-[hsl(var(--foreground))]"
+                                : "truncate font-medium"
+                            }
+                          >
+                            {getItemDisplayTitle(item, "", "")}
+                          </div>
                           <div className="group/details relative inline-block max-w-full">
                             <div className="truncate text-xs text-[hsl(var(--muted-foreground))]">
                               {getItemDisplaySubtitle(item) || ""}
@@ -380,14 +423,6 @@ export function OotdCandidateBuilder({
                           </div>
                         </div>
                       </button>
-                      <AddToCandidatesButton
-                        item={item}
-                        labels={{
-                          add: labels.composer.addToCandidate,
-                          added: labels.composer.addedToCandidate,
-                          remove: labels.composer.removeFromCandidate,
-                        }}
-                      />
                     </div>
                   ))}
                 </div>

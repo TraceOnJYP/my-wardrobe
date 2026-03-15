@@ -11,10 +11,10 @@ export default async function LooksPage({
   searchParams,
 }: {
   params: Promise<{ locale: Locale }>;
-  searchParams: Promise<{ scenario?: string }>;
+  searchParams: Promise<{ scenario?: string; page?: string }>;
 }) {
   const { locale } = await params;
-  const { scenario = "all" } = await searchParams;
+  const { scenario = "all", page = "1" } = await searchParams;
   const dict = await getDictionary(locale);
   const currentUser = await getOptionalCurrentUser();
 
@@ -37,10 +37,14 @@ export default async function LooksPage({
       locale={locale}
       records={looks.data}
       initialScenario={scenario}
+      initialPage={Number(page) || 1}
       labels={{
         ...dict.looks,
         allScenarios: locale === "zh-CN" ? "全部场景" : "All scenarios",
         scenarioOptions: dict.ootd.composer.scenarioOptions,
+        prevPage: dict.wardrobe.list.prevPage,
+        nextPage: dict.wardrobe.list.nextPage,
+        page: dict.wardrobe.list.page,
       }}
     />
   );

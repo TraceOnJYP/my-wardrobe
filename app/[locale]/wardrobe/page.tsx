@@ -82,6 +82,7 @@ export default async function WardrobePage({
     color?: string;
     sort?: string;
     order?: string;
+    gridPage?: string;
   }>;
 }) {
   const { locale } = await params;
@@ -94,6 +95,7 @@ export default async function WardrobePage({
     color = "",
     sort = "",
     order = "",
+    gridPage = "1",
   } = await searchParams;
   const dict = await getDictionary(locale);
   const [items, searchBaseItems, categoryBaseItems, brandBaseItems, colorBaseItems] = await Promise.all([
@@ -179,6 +181,7 @@ export default async function WardrobePage({
           labels={{ ...dict.wardrobe.card, ...dict.wardrobe.list }}
           locale={locale}
           query={q}
+          currentPage={Number(gridPage) || 1}
         />
       )}
     </div>

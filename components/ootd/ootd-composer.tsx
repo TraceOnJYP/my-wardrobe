@@ -466,10 +466,16 @@ export function OotdComposer({
           </div>
           <div className="space-y-2">
             <Select
-              value={isCustomScenario ? "__custom__" : scenario}
+              value={isCustomScenario ? "__custom__" : scenario || "__placeholder__"}
               onChange={(event) => {
                 const nextValue = event.target.value;
                 setSubmitErrors((current) => ({ ...current, scenario: false }));
+
+                if (nextValue === "__placeholder__") {
+                  setIsCustomScenario(false);
+                  setScenario("");
+                  return;
+                }
 
                 if (nextValue === "__custom__") {
                   setIsCustomScenario(true);
@@ -482,6 +488,9 @@ export function OotdComposer({
               }}
               className={scenarioError ? "border-red-300 bg-[rgba(255,244,244,0.92)] focus:border-red-400" : undefined}
             >
+              <option value="__placeholder__" disabled>
+                {locale === "zh-CN" ? `请选择${labels.scenario}` : `Select ${labels.scenario}`}
+              </option>
               {labels.scenarioOptions.map((option) => (
                 <option key={option} value={option}>
                   {option}

@@ -24,11 +24,13 @@ export function LookListShell({
   locale,
   records,
   initialScenario,
+  initialPage,
   labels,
 }: {
   locale: string;
   records: OotdRecord[];
   initialScenario?: string;
+  initialPage?: number;
   labels: {
     title: string;
     subtitle: string;
@@ -53,6 +55,9 @@ export function LookListShell({
     dailyFallback: string;
     items: string;
     noNotes: string;
+    prevPage: string;
+    nextPage: string;
+    page: string;
   };
 }) {
   const router = useRouter();
@@ -67,6 +72,7 @@ export function LookListShell({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [singleAddLookId, setSingleAddLookId] = useState<string | null>(null);
   const [activeScenario, setActiveScenario] = useState<string>(initialScenario || "all");
+  const [currentPage, setCurrentPage] = useState<number>(initialPage || 1);
   const [year, month, day] = wearDate.split("-").map(Number);
 
   const selectedCount = selectedIds.length;
@@ -87,21 +93,52 @@ export function LookListShell({
         : records.filter((record) => (record.scenario?.trim() || labels.dailyFallback) === activeScenario),
     [activeScenario, labels.dailyFallback, records],
   );
+  const pageSize = 6;
+  const totalPages = Math.max(1, Math.ceil(filteredRecords.length / pageSize));
+  const safePage = Math.min(Math.max(currentPage, 1), totalPages);
+  const pagedRecords = useMemo(
+    () => filteredRecords.slice((safePage - 1) * pageSize, safePage * pageSize),
+    [filteredRecords, safePage],
+  );
 
   useEffect(() => {
     setActiveScenario(initialScenario || "all");
   }, [initialScenario]);
 
+  useEffect(() => {
+    setCurrentPage(initialPage || 1);
+  }, [initialPage]);
+
+  useEffect(() => {
+    if (safePage !== currentPage) {
+      setCurrentPage(safePage);
+    }
+  }, [currentPage, safePage]);
+
   const applyScenario = (scenario: string) => {
     setActiveScenario(scenario);
+    setCurrentPage(1);
     const next = new URLSearchParams(searchParams.toString());
     if (scenario === "all") {
       next.delete("scenario");
     } else {
       next.set("scenario", scenario);
     }
+    next.delete("page");
     const query = next.toString();
     router.replace(query ? `${pathname}?${query}` : pathname);
+  };
+
+  const updatePage = (nextPage: number) => {
+    setCurrentPage(nextPage);
+    const next = new URLSearchParams(searchParams.toString());
+    if (nextPage <= 1) {
+      next.delete("page");
+    } else {
+      next.set("page", String(nextPage));
+    }
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
   };
 
   const updateWearDate = (next: { year?: number; month?: number; day?: number }) => {
@@ -358,8 +395,9 @@ export function LookListShell({
       {filteredRecords.length === 0 ? (
         <Card className="p-6 text-sm text-[hsl(var(--muted-foreground))]">{labels.empty}</Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredRecords.map((record) => {
+        <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {pagedRecords.map((record) => {
             const active = selectedIds.includes(record.id);
             const itemTitles = record.items.slice(0, 3).map((item) => getItemDisplayTitle(item, "", ""));
             const content = (
@@ -422,6 +460,20 @@ export function LookListShell({
               </div>
             );
           })}
+          </div>
+          {totalPages > 1 ? (
+            <div className="flex items-center justify-between rounded-[24px] border border-white/60 bg-white/55 px-4 py-3 text-sm backdrop-blur-xl">
+              <Button type="button" variant="outline" onClick={() => updatePage(safePage - 1)} disabled={safePage <= 1}>
+                {labels.prevPage}
+              </Button>
+              <div className="text-[hsl(var(--muted-foreground))]">
+                {labels.page} {safePage} / {totalPages}
+              </div>
+              <Button type="button" variant="outline" onClick={() => updatePage(safePage + 1)} disabled={safePage >= totalPages}>
+                {labels.nextPage}
+              </Button>
+            </div>
+          ) : null}
         </div>
       )}
     </div>
