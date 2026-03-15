@@ -356,6 +356,7 @@ export function OotdCalendar({
                   </Button>
                   <Button
                     type="button"
+                    variant="destructive"
                     onClick={() => setDeleteDialogOpen(true)}
                     disabled={selectedRecordIds.length === 0 || isDeleting}
                   >

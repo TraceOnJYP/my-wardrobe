@@ -38,7 +38,7 @@ export function ConfirmDialog({
           <Button type="button" variant="outline" onClick={onCancel} disabled={isPending}>
             {cancelLabel}
           </Button>
-          <Button type="button" onClick={onConfirm} disabled={isPending}>
+          <Button type="button" variant="destructive" onClick={onConfirm} disabled={isPending}>
             {confirmLabel}
           </Button>
         </div>

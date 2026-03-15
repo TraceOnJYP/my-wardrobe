@@ -7,6 +7,7 @@ import type { WardrobeItem } from "@/types/item";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ItemForm } from "@/components/wardrobe/item-form";
+import { getItemDisplayCategory } from "@/lib/item-display";
 
 type CategoryKey = "clothing" | "accessory" | "bag" | "shoes" | "jewelry";
 
@@ -180,7 +181,7 @@ export function ItemDetailShell({
           {detailDict.back}
         </Button>
         <div className="flex items-center gap-3">
-          <Button type="button" variant="outline" onClick={() => setIsDeleteDialogOpen(true)}>
+          <Button type="button" variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
             {detailDict.delete}
           </Button>
           <Button type="button" onClick={() => setIsEditing(true)}>
@@ -244,11 +245,7 @@ export function ItemDetailShell({
           ) : null}
           <div className="rounded-[22px] border border-white/70 bg-white/70 p-4">
             <div className="mb-2 text-sm font-semibold">{detailDict.overview}</div>
-            <DetailRow label={formDict.placeholders.category} value={currentItem.category} />
-            <DetailRow
-              label={formDict.placeholders.subcategory}
-              value={currentItem.subcategory ?? detailDict.unknown}
-            />
+            <DetailRow label={formDict.placeholders.category} value={getItemDisplayCategory(currentItem)} />
             <DetailRow label={formDict.placeholders.brand} value={currentItem.brand ?? detailDict.unknown} />
             <DetailRow label={formDict.placeholders.color} value={currentItem.color ?? detailDict.unknown} />
           </div>

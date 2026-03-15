@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { getItemDisplayCategory } from "@/lib/item-display";
 import type { WardrobeItem } from "@/types/item";
 
 interface ItemHoverLabels {
@@ -29,10 +30,7 @@ export function ItemHoverDetails({
 
   const rows = [
     { label: labels.brand, value: item.brand },
-    {
-      label: labels.category,
-      value: [item.category, item.subcategory].filter(Boolean).join(" / "),
-    },
+    { label: labels.category, value: getItemDisplayCategory(item) },
     { label: labels.color, value: item.color },
     { label: labels.designElements, value: item.designElements },
     { label: labels.material, value: item.material },

@@ -3,7 +3,7 @@ import type { CreateWardrobeItemDto } from "@/types/dto";
 import type { WardrobeItem } from "@/types/item";
 
 function buildItemName(input: CreateWardrobeItemDto) {
-  return [input.brand, input.subcategory, input.category].filter(Boolean).join(" ") || input.category;
+  return [input.brand, input.category].filter(Boolean).join(" ") || input.category;
 }
 
 function getDefaultPurchaseMeta(input: CreateWardrobeItemDto) {

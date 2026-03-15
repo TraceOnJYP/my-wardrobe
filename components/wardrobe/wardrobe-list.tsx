@@ -9,7 +9,7 @@ import { HighlightedText } from "@/components/shared/highlighted-text";
 import { ItemHoverDetails } from "@/components/shared/item-hover-details";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getItemDisplaySubtitle, getItemDisplayTitle } from "@/lib/item-display";
+import { getItemDisplayCategory, getItemDisplaySubtitle, getItemDisplayTitle } from "@/lib/item-display";
 import type { WardrobeItem } from "@/types/item";
 
 type SortField =
@@ -43,7 +43,6 @@ const DEFAULT_VISIBLE_COLUMNS: ColumnId[] = [
   "designElements",
   "itemType",
   "category",
-  "subcategory",
   "brand",
   "color",
   "season",
@@ -54,7 +53,7 @@ const DEFAULT_VISIBLE_COLUMNS: ColumnId[] = [
 const STORAGE_KEY = "smart-wardrobe:list-visible-columns";
 
 function migrateVisibleColumns(columns: ColumnId[]) {
-  const uniqueColumns = Array.from(new Set(columns));
+  const uniqueColumns = Array.from(new Set(columns)).filter((column) => column !== "subcategory");
   const withoutDesignElements = uniqueColumns.filter((column) => column !== "designElements");
   return ["designElements", ...withoutDesignElements] as ColumnId[];
 }
@@ -245,7 +244,6 @@ export function WardrobeList({
   const columnOptions: Array<{ id: ColumnId; label: string }> = [
     { id: "itemType", label: labels.itemType },
     { id: "category", label: labels.category },
-    { id: "subcategory", label: labels.subcategory },
     { id: "brand", label: labels.brand },
     { id: "color", label: labels.color },
     { id: "designElements", label: labels.designElements },
@@ -434,9 +432,9 @@ export function WardrobeList({
                   ? labels.typeJewelry
                   : labels.typeOther;
       case "category":
-        return item.category;
+        return getItemDisplayCategory(item);
       case "subcategory":
-        return item.subcategory ?? "-";
+        return getItemDisplayCategory(item);
       case "brand":
         return item.brand ?? labels.unknownBrand;
       case "color":
@@ -487,7 +485,7 @@ export function WardrobeList({
     name: labels.item,
     itemType: labels.itemType,
     category: labels.category,
-    subcategory: labels.subcategory,
+    subcategory: labels.category,
     brand: labels.brand,
     color: labels.color,
     designElements: labels.designElements,
@@ -575,9 +573,9 @@ export function WardrobeList({
               </Button>
               <Button
                 type="button"
+                variant="destructive"
                 onClick={() => setDeleteDialogOpen(true)}
                 disabled={selectedIds.length === 0 || isPending}
-                className="bg-[hsl(8_72%_56%)] text-white hover:bg-[hsl(8_72%_50%)]"
               >
                 {isPending ? labels.deleting : labels.deleteSelected}
               </Button>

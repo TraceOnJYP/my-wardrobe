@@ -13,7 +13,7 @@ export function DeleteOotdButton({
   confirmLabel,
   cancelLabel,
   confirmTitle,
-  variant = "outline",
+  variant = "destructive",
   className,
   onDeleted,
 }: {
@@ -24,7 +24,7 @@ export function DeleteOotdButton({
   confirmLabel: string;
   cancelLabel: string;
   confirmTitle: string;
-  variant?: "outline" | "ghost";
+  variant?: "destructive" | "outline" | "ghost";
   className?: string;
   onDeleted?: () => void;
 }) {

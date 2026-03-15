@@ -9,6 +9,7 @@ import { FilePickerField } from "@/components/shared/file-picker-field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { getItemDisplayCategory } from "@/lib/item-display";
 import { cn } from "@/lib/utils/cn";
 
 type CategoryKey = "clothing" | "accessory" | "bag" | "shoes" | "jewelry";
@@ -60,31 +61,31 @@ const categoryFieldGroups: Record<
   Array<{ titleKey: keyof FormDictionary["common"]; fields: string[] }>
 > = {
   clothing: [
-    { titleKey: "basicInfo", fields: ["brand", "subcategory", "color", "material"] },
+    { titleKey: "basicInfo", fields: ["brand", "category", "color", "material"] },
     { titleKey: "styleInfo", fields: ["designElements", "sleeveType", "collarType", "fit", "silhouette", "style", "season", "tags"] },
     { titleKey: "usageInfo", fields: ["price", "priceRange", "wearDays", "costPerWear"] },
     { titleKey: "extraInfo", fields: ["purchaseYear", "purchaseChannel", "ageYears", "favoriteScore"] },
   ],
   accessory: [
-    { titleKey: "basicInfo", fields: ["brand", "category", "subcategory", "color"] },
+    { titleKey: "basicInfo", fields: ["brand", "category", "color"] },
     { titleKey: "styleInfo", fields: ["designElements", "season"] },
     { titleKey: "usageInfo", fields: ["price", "priceRange", "wearDays", "costPerWear"] },
     { titleKey: "extraInfo", fields: ["purchaseYear", "purchaseChannel", "favoriteScore"] },
   ],
   bag: [
-    { titleKey: "basicInfo", fields: ["brand", "subcategory", "color", "size", "material"] },
+    { titleKey: "basicInfo", fields: ["brand", "category", "color", "size", "material"] },
     { titleKey: "styleInfo", fields: ["designElements", "season", "scenario"] },
     { titleKey: "usageInfo", fields: ["price", "priceRange", "useDays", "costPerWear"] },
     { titleKey: "extraInfo", fields: ["purchaseDate", "purchaseChannel", "favoriteScore"] },
   ],
   shoes: [
-    { titleKey: "basicInfo", fields: ["brand", "subcategory", "color"] },
+    { titleKey: "basicInfo", fields: ["brand", "category", "color"] },
     { titleKey: "styleInfo", fields: ["designElements", "scenario", "season"] },
     { titleKey: "usageInfo", fields: ["price", "priceRange", "wearDays", "costPerWear"] },
     { titleKey: "extraInfo", fields: ["purchaseDate", "purchaseChannel", "favoriteScore"] },
   ],
   jewelry: [
-    { titleKey: "basicInfo", fields: ["brand", "subcategory", "color"] },
+    { titleKey: "basicInfo", fields: ["brand", "category", "color"] },
     { titleKey: "styleInfo", fields: ["designElements"] },
     { titleKey: "usageInfo", fields: ["price", "priceRange", "wearDays", "costPerWear"] },
     { titleKey: "extraInfo", fields: ["purchaseYear", "purchaseChannel", "favoriteScore"] },
@@ -124,7 +125,7 @@ export function ItemForm({
   const [values, setValues] = useState<Record<string, string>>({
     brand: initialItem?.brand ?? "",
     category:
-      initialItem?.category ??
+      (initialItem ? getItemDisplayCategory(initialItem) : undefined) ??
       dict.options.category[initialCategory][0] ??
       dict.categories[initialCategory],
     subcategory: initialItem?.subcategory ?? dict.options.subcategory[initialCategory][0] ?? "",
@@ -219,7 +220,7 @@ export function ItemForm({
       itemType: category,
       brand: values.brand || undefined,
       category: values.category || dict.categories[category],
-      subcategory: values.subcategory || undefined,
+      subcategory: undefined,
       color: values.color || undefined,
       designElements: values.designElements || undefined,
       material: values.material || undefined,

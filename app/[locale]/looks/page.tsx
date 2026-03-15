@@ -8,10 +8,13 @@ import { isAuthConfigured } from "@/lib/auth/provider-config";
 
 export default async function LooksPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: Locale }>;
+  searchParams: Promise<{ scenario?: string }>;
 }) {
   const { locale } = await params;
+  const { scenario = "all" } = await searchParams;
   const dict = await getDictionary(locale);
   const currentUser = await getOptionalCurrentUser();
 
@@ -33,7 +36,12 @@ export default async function LooksPage({
     <LookListShell
       locale={locale}
       records={looks.data}
-      labels={dict.looks}
+      initialScenario={scenario}
+      labels={{
+        ...dict.looks,
+        allScenarios: locale === "zh-CN" ? "全部场景" : "All scenarios",
+        scenarioOptions: dict.ootd.composer.scenarioOptions,
+      }}
     />
   );
 }

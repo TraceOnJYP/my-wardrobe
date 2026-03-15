@@ -10,6 +10,7 @@ import { FilePickerField } from "@/components/shared/file-picker-field";
 import { HighlightedText } from "@/components/shared/highlighted-text";
 import { ItemHoverDetails } from "@/components/shared/item-hover-details";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { getItemDisplaySubtitle, getItemDisplayTitle } from "@/lib/item-display";
 import {
@@ -111,6 +112,9 @@ export function OotdComposer({
     subtitle: string;
     wearDate: string;
     scenario: string;
+    scenarioOptions: string[];
+    customOption: string;
+    customPlaceholder: string;
     notes: string;
     image: string;
     imageHint: string;
@@ -159,6 +163,9 @@ export function OotdComposer({
   const today = new Date().toISOString().slice(0, 10);
   const [wearDate, setWearDate] = useState(initialWearDate ?? today);
   const [scenario, setScenario] = useState(initialScenario ?? "");
+  const [isCustomScenario, setIsCustomScenario] = useState(
+    Boolean(initialScenario && !labels.scenarioOptions.includes(initialScenario)),
+  );
   const [notes, setNotes] = useState(initialNotes ?? "");
   const [internalSelectedIds, setInternalSelectedIds] = useState<string[]>(initialSelectedIds ?? []);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -184,6 +191,7 @@ export function OotdComposer({
   }, [initialWearDate, today]);
   useEffect(() => {
     setScenario(initialScenario ?? "");
+    setIsCustomScenario(Boolean(initialScenario && !labels.scenarioOptions.includes(initialScenario)));
   }, [initialScenario]);
   useEffect(() => {
     setNotes(initialNotes ?? "");
@@ -456,15 +464,43 @@ export function OotdComposer({
           <div className={scenarioError ? "text-sm font-medium text-red-700" : "text-sm font-medium"}>
             {labels.scenario} *
           </div>
-          <Input
-            value={scenario}
-            onChange={(event) => {
-              setScenario(event.target.value);
-              setSubmitErrors((current) => ({ ...current, scenario: false }));
-            }}
-            placeholder={labels.scenario}
-            className={scenarioError ? "border-red-300 bg-[rgba(255,244,244,0.92)] focus:border-red-400" : undefined}
-          />
+          <div className="space-y-2">
+            <Select
+              value={isCustomScenario ? "__custom__" : scenario}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                setSubmitErrors((current) => ({ ...current, scenario: false }));
+
+                if (nextValue === "__custom__") {
+                  setIsCustomScenario(true);
+                  setScenario("");
+                  return;
+                }
+
+                setIsCustomScenario(false);
+                setScenario(nextValue);
+              }}
+              className={scenarioError ? "border-red-300 bg-[rgba(255,244,244,0.92)] focus:border-red-400" : undefined}
+            >
+              {labels.scenarioOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+              <option value="__custom__">{labels.customOption}</option>
+            </Select>
+            {isCustomScenario ? (
+              <Input
+                value={scenario}
+                onChange={(event) => {
+                  setScenario(event.target.value);
+                  setSubmitErrors((current) => ({ ...current, scenario: false }));
+                }}
+                placeholder={`${labels.customPlaceholder}${labels.scenario}`}
+                className={scenarioError ? "border-red-300 bg-[rgba(255,244,244,0.92)] focus:border-red-400" : undefined}
+              />
+            ) : null}
+          </div>
         </label>
       </div>
 

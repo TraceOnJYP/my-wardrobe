@@ -10,6 +10,7 @@ import { WardrobeViewToggle } from "@/components/wardrobe/wardrobe-view-toggle";
 import { getDictionary } from "@/features/i18n/get-dictionary";
 import { getItems } from "@/features/wardrobe/api";
 import type { Locale } from "@/features/i18n/routing";
+import { getItemDisplayCategory } from "@/lib/item-display";
 import type { WardrobeItem } from "@/types/item";
 
 function uniqueSorted(values: Array<string | undefined>, locale: string) {
@@ -34,11 +35,7 @@ function buildSearchGroups(items: WardrobeItem[], locale: string) {
     },
     {
       label: locale === "zh-CN" ? "类型" : "Type",
-      options: uniqueSorted(items.map((item) => item.category), locale),
-    },
-    {
-      label: locale === "zh-CN" ? "款式" : "Style",
-      options: uniqueSorted(items.map((item) => item.subcategory), locale),
+      options: uniqueSorted(items.map((item) => getItemDisplayCategory(item)), locale),
     },
     {
       label: locale === "zh-CN" ? "颜色" : "Color",
@@ -108,10 +105,7 @@ export default async function WardrobePage({
   ]);
   const hasActiveQuery = Boolean(q || category || brand || color || (type && type !== "all"));
   const filterOptions = {
-    category: uniqueSorted(
-      categoryBaseItems.data.flatMap((item) => [item.category, item.subcategory]),
-      locale,
-    ),
+    category: uniqueSorted(categoryBaseItems.data.map((item) => getItemDisplayCategory(item)), locale),
     brand: uniqueSorted(
       brandBaseItems.data.map((item) => item.brand),
       locale,

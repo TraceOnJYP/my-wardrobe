@@ -34,8 +34,8 @@ export const createWardrobeItemSchema = z
   })
   .superRefine((input, ctx) => {
     const requiredByType: Record<string, string[]> = {
-      clothing: ["brand", "subcategory", "color", "material"],
-      accessory: ["brand", "category", "subcategory", "color"],
+      clothing: ["brand", "category", "color", "material"],
+      accessory: ["brand", "category", "color"],
       bag: ["brand", "category", "color", "size", "material"],
       shoes: ["brand", "category", "color"],
       jewelry: ["brand", "category", "color"],

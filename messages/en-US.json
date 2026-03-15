@@ -87,7 +87,7 @@
       "addedToCandidate": "Added to candidates",
       "removeFromCandidate": "Remove from candidates",
       "brand": "Brand",
-        "category": "Type / Style",
+        "category": "Type",
       "color": "Color",
       "designElements": "Design elements",
       "material": "Material",
@@ -117,7 +117,7 @@
       "cancel": "Cancel",
       "selectAll": "Select all",
       "selectRow": "Select",
-      "subcategory": "Style",
+      "subcategory": "Type",
       "designElements": "Design elements",
       "material": "Material",
       "sleeveType": "Sleeve type",
@@ -210,16 +210,16 @@
         "manualWearHint": "This is a manual value outside the outfit calendar records, and it will be calculated separately from OOTD stats."
       },
       "fields": {
-        "clothing": ["Brand", "Style", "Color", "Design elements", "Material", "Sleeve type", "Collar type", "Fit", "Silhouette", "Style direction", "Season", "Price", "Price range", "Wear days", "Cost per wear", "Purchase year", "Purchase channel", "Item age", "Favorite score", "Tags"],
-        "accessory": ["Brand", "Type", "Style", "Color", "Design elements", "Season", "Price", "Price range", "Wear days", "Cost per wear", "Purchase year", "Purchase channel", "Favorite score"],
-        "bag": ["Brand", "Style", "Color", "Size", "Material", "Design elements", "Season", "Scenario", "Price", "Price range", "Use days", "Cost per wear", "Purchase time", "Purchase channel", "Favorite score"],
-        "shoes": ["Brand", "Style", "Color", "Design elements", "Scenario", "Season", "Price", "Price range", "Wear days", "Cost per wear", "Purchase time", "Purchase channel", "Favorite score"],
-        "jewelry": ["Brand", "Style", "Color family", "Design elements", "Price", "Price range", "Wear days", "Cost per wear", "Purchase year", "Channel", "Favorite score"]
+        "clothing": ["Brand", "Type", "Color", "Design elements", "Material", "Sleeve type", "Collar type", "Fit", "Silhouette", "Style direction", "Season", "Price", "Price range", "Wear days", "Cost per wear", "Purchase year", "Purchase channel", "Item age", "Favorite score", "Tags"],
+        "accessory": ["Brand", "Type", "Color", "Design elements", "Season", "Price", "Price range", "Wear days", "Cost per wear", "Purchase year", "Purchase channel", "Favorite score"],
+        "bag": ["Brand", "Type", "Color", "Size", "Material", "Design elements", "Season", "Scenario", "Price", "Price range", "Use days", "Cost per wear", "Purchase time", "Purchase channel", "Favorite score"],
+        "shoes": ["Brand", "Type", "Color", "Design elements", "Scenario", "Season", "Price", "Price range", "Wear days", "Cost per wear", "Purchase time", "Purchase channel", "Favorite score"],
+        "jewelry": ["Brand", "Type", "Color family", "Design elements", "Price", "Price range", "Wear days", "Cost per wear", "Purchase year", "Channel", "Favorite score"]
       },
       "placeholders": {
         "brand": "Brand",
         "category": "Type",
-        "subcategory": "Style",
+        "subcategory": "Type",
         "color": "Color / color family",
         "designElements": "Design elements, split multiple values with commas",
         "material": "Material",
@@ -254,11 +254,11 @@
         "color": ["Black", "White", "Beige", "Brown", "Gray", "Blue", "Green"],
         "material": ["Wool", "Cotton", "Silk", "Leather", "Denim", "Polyester"],
         "category": {
-          "clothing": ["Clothing"],
-          "accessory": ["Accessory", "Hat", "Scarf", "Eyewear"],
-          "bag": ["Bag"],
-          "shoes": ["Shoes"],
-          "jewelry": ["Jewelry"]
+          "clothing": ["Outerwear", "Tops", "Bottoms", "Skirts", "Sets", "Dresses"],
+          "accessory": ["Hat", "Scarf", "Belt", "Eyewear", "Gloves"],
+          "bag": ["Tote", "Shoulder bag", "Crossbody", "Clutch", "Backpack"],
+          "shoes": ["Ankle boots", "Loafers", "Sneakers", "Sandals", "Heels"],
+          "jewelry": ["Necklace", "Earrings", "Ring", "Bracelet", "Brooch"]
         },
         "size": ["Mini", "Small", "Medium", "Large"]
       }
@@ -272,6 +272,9 @@
       "subtitle": "Pick pieces from your wardrobe and upload one hero photo. You can save up to 5 looks per day.",
       "wearDate": "Wear date",
       "scenario": "Scenario",
+      "scenarioOptions": ["Workout", "Outdoor", "Social Event", "Date Night", "Vacation", "Casual Outing", "Comfort Leisure", "Formal Business", "Office Commute"],
+      "customOption": "Custom...",
+      "customPlaceholder": "Enter ",
       "notes": "Notes",
       "image": "Outfit photo",
       "imageHint": "Upload one main photo for the calendar and detail view.",
@@ -284,7 +287,7 @@
       "selected": "Selected",
       "noItems": "No wardrobe items available yet. Add some items first.",
       "search": "Search items",
-      "searchPlaceholder": "Search by brand, type, style, color, design details, material, tags, and more",
+      "searchPlaceholder": "Search by brand, type, color, design details, material, tags, and more",
       "recentSearches": "Recent searches",
       "suggestions": "Suggestions",
       "suggestionGroups": {
@@ -406,8 +409,9 @@
     "select": "Select",
     "clearSelection": "Clear selection",
     "selectedCount": "Selected",
-    "addToDay": "Add to this day",
+    "addToDay": "Add to calendar",
     "addingToDay": "Adding...",
+    "addToDaySubtitle": "Choose a date to quickly add this saved look into the outfit calendar.",
     "addError": "Failed to add. Check whether this day has already reached the 5-look limit.",
     "deleteSelected": "Delete selected",
     "deletingSelected": "Deleting...",
@@ -436,7 +440,7 @@
   },
   "search": {
     "title": "Search",
-    "placeholder": "Search by brand, color, category, type, or style",
+    "placeholder": "Search by brand, color, category, or type",
     "action": "Search",
     "recent": "Recent searches",
     "filtersPlaceholder": "This area will host combinational filters for brand, color, season, and style."
@@ -559,7 +563,7 @@
     "templateDescription": "The template mirrors your current wardrobe workbook and includes sheets for clothing, accessories, bags, shoes, and jewelry.",
     "downloadTemplate": "Download template",
     "goManual": "Switch to manual add",
-    "templateFields": "Suggested clothing headers: id, image_name, brand, category, type, style, color, design elements, material, sleeve type, collar type, fit, silhouette, style direction, season, price, price range, wear days, cost per wear, purchase year, purchase channel, item age, favorite score, outfit pairing. The image ZIP matches `image_name` first, then falls back to `id.ext`.",
+    "templateFields": "Suggested clothing headers: id, image_name, brand, category, type, color, design elements, material, sleeve type, collar type, fit, silhouette, style direction, season, price, price range, wear days, cost per wear, purchase year, purchase channel, item age, favorite score, outfit pairing. The image ZIP matches `image_name` first, then falls back to `id.ext`.",
     "panel": {
       "chooseFile": "Choose file",
       "chooseImagesZip": "Choose image ZIP",
