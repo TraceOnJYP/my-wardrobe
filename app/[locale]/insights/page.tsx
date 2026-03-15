@@ -12,6 +12,22 @@ import { getAnalyticsSummary } from "@/features/insights/api";
 type InsightTab = "all" | "clothing" | "accessory" | "bag" | "shoes" | "jewelry" | "other";
 type InsightRange = "6" | "12" | "all";
 
+function getCurrentSeasonLabel(locale: Locale) {
+  const month = new Date().getUTCMonth() + 1;
+
+  if (locale === "zh-CN") {
+    if (month >= 3 && month <= 5) return "春";
+    if (month >= 6 && month <= 8) return "夏";
+    if (month >= 9 && month <= 11) return "秋";
+    return "冬";
+  }
+
+  if (month >= 3 && month <= 5) return "Spring";
+  if (month >= 6 && month <= 8) return "Summer";
+  if (month >= 9 && month <= 11) return "Autumn";
+  return "Winter";
+}
+
 export default async function InsightsPage({
   params,
   searchParams,
@@ -26,6 +42,7 @@ export default async function InsightsPage({
   const { locale } = await params;
   const { type = "all", spendRange = "6", ootdRange = "6" } = await searchParams;
   const dict = await getDictionary(locale);
+  const currentSeasonLabel = getCurrentSeasonLabel(locale);
   const spendMonthRange = spendRange === "12" ? 12 : spendRange === "all" ? "all" : 6;
   const ootdMonthRange = ootdRange === "12" ? 12 : ootdRange === "all" ? "all" : 6;
   const [spendSummary, ootdSummary] = await Promise.all([
@@ -193,7 +210,11 @@ export default async function InsightsPage({
         />
         <RankingCard
           locale={locale}
-          title={dict.insights.modules.seasonalCost.title}
+          title={
+            locale === "zh-CN"
+              ? `${dict.insights.modules.seasonalCost.title}（${currentSeasonLabel}）`
+              : `${dict.insights.modules.seasonalCost.title} (${currentSeasonLabel})`
+          }
           subtitle={dict.insights.modules.seasonalCost.subtitle}
           entries={summary.data.seasonalCostByTypeItems}
           emptyText={dict.insights.empty}

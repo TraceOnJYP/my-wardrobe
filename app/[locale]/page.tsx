@@ -9,6 +9,22 @@ import { getAnalyticsSummary } from "@/features/insights/api";
 import { getOotdRecords } from "@/features/ootd/api";
 import type { Locale } from "@/features/i18n/routing";
 
+function getCurrentSeasonLabel(locale: Locale) {
+  const month = new Date().getUTCMonth() + 1;
+
+  if (locale === "zh-CN") {
+    if (month >= 3 && month <= 5) return "春";
+    if (month >= 6 && month <= 8) return "夏";
+    if (month >= 9 && month <= 11) return "秋";
+    return "冬";
+  }
+
+  if (month >= 3 && month <= 5) return "Spring";
+  if (month >= 6 && month <= 8) return "Summer";
+  if (month >= 9 && month <= 11) return "Autumn";
+  return "Winter";
+}
+
 export default async function HomePage({
   params,
 }: {
@@ -16,6 +32,7 @@ export default async function HomePage({
 }) {
   const { locale } = await params;
   const dict = await getDictionary(locale);
+  const currentSeasonLabel = getCurrentSeasonLabel(locale);
   const [summary, clothingSummary] = await Promise.all([
     getAnalyticsSummary(locale),
     getAnalyticsSummary(locale, "clothing"),
@@ -49,8 +66,8 @@ export default async function HomePage({
     ...clothingSummary.data.seasonalCostGroups.map((group) => ({
       label:
         locale === "zh-CN"
-          ? `${dict.home.highlights.seasonalCostLabel}${group.label}`
-          : `${dict.home.highlights.seasonalCostLabel} ${group.label}`,
+          ? `${dict.home.highlights.seasonalCostLabel}（${currentSeasonLabel}）${group.label}`
+          : `${dict.home.highlights.seasonalCostLabel} (${currentSeasonLabel}) ${group.label}`,
       items: group.items.map((entry) => ({
         id: entry.id,
         label: group.label,
