@@ -547,7 +547,7 @@
     "login": {
       "eyebrow": "Smart Wardrobe",
       "title": "Sign in to your wardrobe account",
-      "subtitle": "Use Google, Apple, or the upcoming WeChat login to access your personal wardrobe, outfits, and analytics data.",
+      "subtitle": "Use Google, Apple, or WeChat login to access your personal wardrobe, outfits, and analytics data.",
       "privacy": "Sign-in is used to identify your data space and keep sessions across devices. Account linking and richer privacy settings will be added later.",
       "featuresTitle": "After you sign in",
       "features": ["Save wardrobe items and images", "Record and sync your outfit calendar", "Review analytics and history across devices"],

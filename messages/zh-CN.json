@@ -547,7 +547,7 @@
     "login": {
       "eyebrow": "Smart Wardrobe",
       "title": "登录到你的衣橱账户",
-      "subtitle": "使用 Google、Apple 或后续接入的微信登录，进入你的专属衣橱、穿搭和分析数据。",
+      "subtitle": "使用 Google、Apple 或微信登录，进入你的专属衣橱、穿搭和分析数据。",
       "privacy": "登录仅用于识别你的衣橱数据空间与跨设备会话，后续会支持账号绑定与更完整的隐私设置。",
       "featuresTitle": "登录后你可以",
       "features": ["保存衣物与图片", "记录并同步穿搭日历", "跨设备查看分析与历史记录"],
