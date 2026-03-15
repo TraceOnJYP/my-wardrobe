@@ -682,6 +682,11 @@ export function WardrobeList({
                             />
                           )}
                           <div className="min-w-0">
+                            {item.discardedAt ? (
+                              <div className="mb-1.5 inline-flex rounded-full border border-[rgba(198,185,171,0.72)] bg-[rgba(242,236,229,0.92)] px-2.5 py-1 text-[11px] font-medium text-[hsl(var(--muted-foreground))]">
+                                {locale === "zh-CN" ? `已丢弃 ${item.discardedAt}` : `Discarded ${item.discardedAt}`}
+                              </div>
+                            ) : null}
                             <div className="truncate font-medium transition group-hover:text-[hsl(var(--primary))]">
                               <HighlightedText
                                 text={getItemDisplayTitle(item, labels.unknownBrand, "")}

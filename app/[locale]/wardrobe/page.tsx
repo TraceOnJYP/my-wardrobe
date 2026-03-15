@@ -126,6 +126,7 @@ export default async function WardrobePage({
     { value: "jewelry", label: dict.wardrobe.types.jewelry },
     { value: "other", label: dict.wardrobe.types.other },
     { value: "all", label: dict.wardrobe.types.all },
+    { value: "discarded", label: locale === "zh-CN" ? "已丢弃" : "Discarded" },
   ];
 
   return (

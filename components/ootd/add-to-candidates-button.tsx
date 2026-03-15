@@ -24,6 +24,7 @@ export function AddToCandidatesButton({
   className?: string;
 }) {
   const [added, setAdded] = useState(false);
+  const unavailable = Boolean(item.deletedAt || item.discardedAt);
 
   useEffect(() => {
     setAdded(hasOotdCandidate(item.id));
@@ -33,11 +34,17 @@ export function AddToCandidatesButton({
   }, [item.id]);
 
   const buttonLabel = added ? labels.remove : labels.add;
+  const disabled = unavailable && !added;
 
   return (
     <button
       type="button"
       onClick={(event) => {
+        if (disabled) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
         event.preventDefault();
         event.stopPropagation();
         const rect = event.currentTarget.getBoundingClientRect();
@@ -59,10 +66,13 @@ export function AddToCandidatesButton({
       }}
       className={
         className ??
-        (added
-          ? "inline-flex h-8 w-8 items-center justify-center rounded-full border border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-base font-semibold leading-none text-[hsl(var(--primary-foreground))] shadow-[0_10px_20px_rgba(93,57,30,0.18)]"
-          : "inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(214,154,97,0.34)] bg-[rgba(255,252,248,0.98)] text-base font-semibold leading-none text-[hsl(var(--foreground))] shadow-[0_8px_18px_rgba(77,57,36,0.06)]")
+        (disabled
+          ? "inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(190,181,172,0.52)] bg-[rgba(236,231,226,0.92)] text-base font-semibold leading-none text-[hsl(var(--muted-foreground))] opacity-80"
+          : added
+            ? "inline-flex h-8 w-8 items-center justify-center rounded-full border border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-base font-semibold leading-none text-[hsl(var(--primary-foreground))] shadow-[0_10px_20px_rgba(93,57,30,0.18)]"
+            : "inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(214,154,97,0.34)] bg-[rgba(255,252,248,0.98)] text-base font-semibold leading-none text-[hsl(var(--foreground))] shadow-[0_8px_18px_rgba(77,57,36,0.06)]")
       }
+      disabled={disabled}
       aria-pressed={added}
       aria-label={buttonLabel}
       title={buttonLabel}

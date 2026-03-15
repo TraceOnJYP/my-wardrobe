@@ -144,6 +144,7 @@ export function OotdCandidateBuilder({
     const seen = new Set<string>();
 
     return merged.filter((item) => {
+      if (item.deletedAt || item.discardedAt) return false;
       if (seen.has(item.id)) return false;
       seen.add(item.id);
       return true;
@@ -336,6 +337,17 @@ export function OotdCandidateBuilder({
                           >
                             {getItemDisplayTitle(item, "", "")}
                           </div>
+                          {item.deletedAt || item.discardedAt ? (
+                            <div
+                              className={
+                                isSelected
+                                  ? "mt-1 text-[11px] text-[rgba(255,245,234,0.86)]"
+                                  : "mt-1 text-[11px] text-[hsl(var(--muted-foreground))]"
+                              }
+                            >
+                              {item.deletedAt ? (locale === "zh-CN" ? "单品已删除" : "Item deleted") : locale === "zh-CN" ? "单品已丢弃" : "Item discarded"}
+                            </div>
+                          ) : null}
                           <ItemHoverDetails item={item} labels={labels.composer.detailFields} />
                         </div>
                       </button>

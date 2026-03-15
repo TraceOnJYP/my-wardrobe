@@ -208,6 +208,10 @@ export function OotdComposer({
   const uniqueWardrobeItems = useMemo(() => {
     const seen = new Set<string>();
     return wardrobeItems.filter((item) => {
+      if (item.deletedAt || item.discardedAt) {
+        return false;
+      }
+
       const fingerprint = buildItemFingerprint(item);
 
       if (seen.has(fingerprint)) {
@@ -268,10 +272,7 @@ export function OotdComposer({
       .filter((entry) => matchesIndexedSearchEntries(entry.entries, query))
       .map((entry) => entry.item);
   }, [deferredSearch, indexedWardrobeItems, uniqueWardrobeItems]);
-  const availableItems = useMemo(
-    () => filteredItems.filter((item) => !selectedIds.includes(item.id)),
-    [filteredItems, selectedIds],
-  );
+  const availableItems = filteredItems;
   const suggestionOptions = useMemo(() => {
     const query = deferredSearch.trim().toLowerCase();
     const pool = new Map<string, { group: SuggestionGroup; value: string }>();
@@ -341,6 +342,11 @@ export function OotdComposer({
     setPage(1);
   };
 
+  const hasUnavailableSelectedItems = useMemo(
+    () => selectedItems.some((item) => item.deletedAt || item.discardedAt),
+    [selectedItems],
+  );
+
   const onSubmit = () => {
     const nextErrors = {
       scenario: !scenario.trim(),
@@ -351,6 +357,12 @@ export function OotdComposer({
     if (nextErrors.scenario || nextErrors.items) {
       setSubmitErrors(nextErrors);
       setSaveErrorMessage(null);
+      return;
+    }
+
+    if (recordType === "look" && hasUnavailableSelectedItems) {
+      setSubmitErrors({ scenario: false, items: true, save: false });
+      setSaveErrorMessage(locale === "zh-CN" ? "请先移除已丢弃或已删除的单品，再保存穿搭组合。" : "Remove discarded or deleted items before saving this look.");
       return;
     }
 

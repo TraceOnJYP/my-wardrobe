@@ -38,6 +38,8 @@ function buildSampleItems(locale: Locale): WardrobeItem[] {
         ootdUseDays: 0,
         wearDays: 12,
         costPerWear: 108.25,
+        discardedAt: undefined,
+        status: "active",
         updatedAt: "2026-03-07T00:00:00Z",
       },
       {
@@ -56,6 +58,8 @@ function buildSampleItems(locale: Locale): WardrobeItem[] {
         ootdUseDays: 0,
         wearDays: 18,
         costPerWear: 16.61,
+        discardedAt: undefined,
+        status: "active",
         updatedAt: "2026-03-07T00:00:00Z",
       },
     ];
@@ -78,6 +82,8 @@ function buildSampleItems(locale: Locale): WardrobeItem[] {
       ootdUseDays: 0,
       wearDays: 12,
       costPerWear: 108.25,
+      discardedAt: undefined,
+      status: "active",
       updatedAt: "2026-03-07T00:00:00Z",
     },
     {
@@ -96,6 +102,8 @@ function buildSampleItems(locale: Locale): WardrobeItem[] {
       ootdUseDays: 0,
       wearDays: 18,
       costPerWear: 16.61,
+      discardedAt: undefined,
+      status: "active",
       updatedAt: "2026-03-07T00:00:00Z",
     },
   ];
@@ -129,6 +137,8 @@ export async function getItems(locale: Locale, query: WardrobeQuery = {}) {
         const typeMatch =
           !normalizedQuery.type || normalizedQuery.type === "all"
             ? true
+            : normalizedQuery.type === "discarded"
+              ? Boolean(item.discardedAt)
             : normalizedQuery.type === "other"
               ? !["clothing", "accessory", "bag", "shoes", "jewelry"].includes(item.itemType ?? "")
               : item.itemType === normalizedQuery.type;
@@ -187,7 +197,13 @@ export async function getItems(locale: Locale, query: WardrobeQuery = {}) {
     ];
 
     if (normalizedQuery.type && normalizedQuery.type !== "all") {
-      if (normalizedQuery.type === "other") {
+      if (normalizedQuery.type === "discarded") {
+        andFilters.push({
+          discardedAt: {
+            not: null,
+          },
+        });
+      } else if (normalizedQuery.type === "other") {
         andFilters.push({
           NOT: {
             itemType: {
@@ -281,6 +297,9 @@ export async function getItems(locale: Locale, query: WardrobeQuery = {}) {
       favoriteScore: record.favoriteScore,
       notes: record.notes ?? undefined,
       imageUrl: record.imageUrl ?? undefined,
+      discardedAt: record.discardedAt ? toDateOnlyString(record.discardedAt) : undefined,
+      deletedAt: record.deletedAt ? record.deletedAt.toISOString() : undefined,
+      status: record.deletedAt ? "deleted" : record.discardedAt ? "discarded" : "active",
       updatedAt: record.updatedAt.toISOString(),
     }));
 

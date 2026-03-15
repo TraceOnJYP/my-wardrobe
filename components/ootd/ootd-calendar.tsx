@@ -403,10 +403,16 @@ export function OotdCalendar({
                   {labels.selectedCount} {selectedRecordIds.length}
                 </div>
               ) : null}
-              {activeDay.records.map((record, index) => (
+              {activeDay.records.map((record, index) => {
+                const isUnavailable = record.containsDeletedItems || record.containsDiscardedItems;
+                return (
                 <div
                   key={record.id}
-                  className="flex items-start gap-3 rounded-[20px] border border-white/75 bg-white/85 p-3 transition hover:translate-y-[-1px]"
+                  className={
+                    isUnavailable
+                      ? "flex items-start gap-3 rounded-[20px] border border-[rgba(206,197,188,0.52)] bg-[rgba(246,243,239,0.92)] p-3 text-[hsl(var(--muted-foreground))]"
+                      : "flex items-start gap-3 rounded-[20px] border border-white/75 bg-white/85 p-3 transition hover:translate-y-[-1px]"
+                  }
                 >
                   {selectionMode ? (
                     <div className="mt-1 flex shrink-0 items-start gap-2">
@@ -519,7 +525,8 @@ export function OotdCalendar({
                     </Link>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             activeDayIsFull ? (

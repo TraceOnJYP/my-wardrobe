@@ -128,6 +128,7 @@ model WardrobeItem {
   favoriteScore   Int         @default(0)
   notes           String?
   imageUrl        String?     @db.VarChar(500)
+  discardedAt     DateTime?   @db.Date
   version         Int         @default(1)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt

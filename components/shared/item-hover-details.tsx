@@ -90,7 +90,7 @@ export function ItemHoverDetails({
       {open && typeof document !== "undefined"
         ? createPortal(
             <div
-              className="pointer-events-none fixed z-[220] rounded-[18px] border border-white/80 bg-[rgba(255,252,248,0.98)] p-3 shadow-[0_16px_35px_rgba(77,57,36,0.16)] backdrop-blur-xl"
+              className="pointer-events-none fixed z-[260] rounded-[18px] border border-white/85 bg-[rgba(255,250,246,1)] p-3 shadow-[0_16px_35px_rgba(77,57,36,0.12)]"
               style={{
                 top: position.top,
                 left: position.left,

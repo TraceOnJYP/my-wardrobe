@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { DeleteOotdButton } from "@/components/ootd/delete-ootd-button";
 import { Card } from "@/components/ui/card";
+import { getItemDisplayTitle } from "@/lib/item-display";
 import type { OotdRecord } from "@/types/ootd";
 
 function formatDate(value: string, locale: string) {
@@ -53,6 +54,8 @@ export function OotdDetailShell({
     scenario: string;
     count: string;
     items: string;
+    itemDeleted?: string;
+    itemDiscarded?: string;
     notes: string;
     noNotes: string;
     itemsTitle: string;
@@ -182,21 +185,46 @@ export function OotdDetailShell({
 
           <div className="grid gap-3">
             {record.items.map((item) => (
-              <Link
-                key={item.id}
-                href={`/${locale}/wardrobe/${item.id}`}
-                className="flex items-center gap-3 rounded-[22px] border border-white/70 bg-white/78 p-3 transition hover:translate-y-[-1px]"
-              >
-                {item.imageUrl ? (
-                  <img src={item.imageUrl} alt={item.name} className="h-16 w-14 rounded-[16px] object-cover" />
-                ) : (
-                  <div className="h-16 w-14 rounded-[16px] bg-[linear-gradient(160deg,#ead6c1,#f7f1e8)]" />
-                )}
-                <div className="min-w-0">
-                  <div className="truncate font-medium">{item.name}</div>
-                  <div className="text-xs text-[hsl(var(--muted-foreground))]">{labels.viewItem}</div>
+              item.deletedAt ? (
+                <div
+                  key={item.id}
+                  className="flex items-center gap-3 rounded-[22px] border border-[rgba(180,171,162,0.72)] bg-[rgba(232,228,223,0.92)] p-3 text-[hsl(var(--muted-foreground))]"
+                >
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl} alt={item.name} className="h-16 w-14 rounded-[16px] object-cover grayscale" />
+                  ) : (
+                    <div className="h-16 w-14 rounded-[16px] bg-[linear-gradient(160deg,#ddd4ca,#f3efe9)]" />
+                  )}
+                  <div className="min-w-0">
+                    <div className="truncate font-medium text-[hsl(var(--foreground))]">
+                      {getItemDisplayTitle(item, "", "")}
+                    </div>
+                    <div className="text-xs">{labels.itemDeleted ?? labels.viewItem}</div>
+                  </div>
                 </div>
-              </Link>
+              ) : (
+                <Link
+                  key={item.id}
+                  href={`/${locale}/wardrobe/${item.id}`}
+                  className={
+                    item.discardedAt
+                      ? "flex items-center gap-3 rounded-[22px] border border-[rgba(198,185,171,0.72)] bg-[rgba(242,236,229,0.92)] p-3 transition hover:translate-y-[-1px]"
+                      : "flex items-center gap-3 rounded-[22px] border border-white/70 bg-white/78 p-3 transition hover:translate-y-[-1px]"
+                  }
+                >
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl} alt={item.name} className="h-16 w-14 rounded-[16px] object-cover" />
+                  ) : (
+                    <div className="h-16 w-14 rounded-[16px] bg-[linear-gradient(160deg,#ead6c1,#f7f1e8)]" />
+                  )}
+                  <div className="min-w-0">
+                    <div className="truncate font-medium">{getItemDisplayTitle(item, "", "")}</div>
+                    <div className="text-xs text-[hsl(var(--muted-foreground))]">
+                      {item.discardedAt ? labels.itemDiscarded ?? labels.viewItem : labels.viewItem}
+                    </div>
+                  </div>
+                </Link>
+              )
             ))}
           </div>
         </Card>

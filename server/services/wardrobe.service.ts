@@ -50,6 +50,8 @@ function mapWardrobeItem(record: {
   favoriteScore: number;
   notes: string | null;
   imageUrl: string | null;
+  discardedAt: Date | null;
+  deletedAt: Date | null;
   updatedAt: Date;
 }): WardrobeItem {
   const effectivePurchaseDate = record.purchaseDate ?? record.updatedAt;
@@ -90,6 +92,9 @@ function mapWardrobeItem(record: {
     favoriteScore: record.favoriteScore,
     notes: record.notes ?? undefined,
     imageUrl: record.imageUrl ?? undefined,
+    discardedAt: record.discardedAt ? toDateOnlyString(record.discardedAt) : undefined,
+    deletedAt: record.deletedAt ? record.deletedAt.toISOString() : undefined,
+    status: record.deletedAt ? "deleted" : record.discardedAt ? "discarded" : "active",
     updatedAt: record.updatedAt.toISOString(),
   };
 }
@@ -185,6 +190,7 @@ export const wardrobeService = {
         favoriteScore: input.favoriteScore ?? 0,
         notes: input.notes,
         imageUrl: input.imageUrl,
+        discardedAt: null,
       },
     });
 
@@ -236,6 +242,7 @@ export const wardrobeService = {
         favoriteScore: input.favoriteScore ?? 0,
         notes: input.notes,
         imageUrl: input.imageUrl,
+        discardedAt: null,
       };
     });
 
@@ -322,6 +329,61 @@ export const wardrobeService = {
         favoriteScore: params.input.favoriteScore ?? 0,
         notes: params.input.notes,
         imageUrl: params.input.imageUrl,
+        discardedAt: existing.discardedAt,
+        version: {
+          increment: 1,
+        },
+      },
+    });
+
+    const [item] = await attachDerivedUsage(params.userId, [mapWardrobeItem(record)]);
+    return item;
+  },
+
+  async discardItem(params: { userId: string; itemId: string; discardedAt: string }) {
+    const existing = await prisma.wardrobeItem.findFirst({
+      where: {
+        id: params.itemId,
+        userId: params.userId,
+        deletedAt: null,
+      },
+    });
+
+    if (!existing) {
+      return null;
+    }
+
+    const record = await prisma.wardrobeItem.update({
+      where: { id: params.itemId },
+      data: {
+        discardedAt: new Date(params.discardedAt),
+        version: {
+          increment: 1,
+        },
+      },
+    });
+
+    const [item] = await attachDerivedUsage(params.userId, [mapWardrobeItem(record)]);
+    return item;
+  },
+
+  async restoreDiscardedItem(params: { userId: string; itemId: string }) {
+    const existing = await prisma.wardrobeItem.findFirst({
+      where: {
+        id: params.itemId,
+        userId: params.userId,
+        deletedAt: null,
+      },
+    });
+
+    if (!existing) {
+      return null;
+    }
+
+    const record = await prisma.wardrobeItem.update({
+      where: { id: params.itemId },
+      data: {
+        discardedAt: null,
         version: {
           increment: 1,
         },

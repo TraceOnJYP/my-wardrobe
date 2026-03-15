@@ -16,6 +16,10 @@ function buildTitle(record: OotdRecord, fallback: string) {
   return notes ? `${scenario} ${notes}` : scenario;
 }
 
+function isDiscardedForDate(value: string | undefined, wearDate: string) {
+  return Boolean(value && value <= wearDate);
+}
+
 function getDaysInMonth(year: number, month: number) {
   return new Date(Date.UTC(year, month, 0)).getUTCDate();
 }
@@ -87,15 +91,35 @@ export function LookListShell({
     [month, year],
   );
   const filteredRecords = useMemo(
-    () =>
-      activeScenario === "all"
-        ? records
-        : records.filter((record) => (record.scenario?.trim() || labels.dailyFallback) === activeScenario),
+    () => {
+      const filtered =
+        activeScenario === "all"
+          ? records
+          : activeScenario === "__unavailable__"
+            ? records.filter((record) => record.containsDeletedItems || record.containsDiscardedItems)
+            : records.filter((record) => (record.scenario?.trim() || labels.dailyFallback) === activeScenario);
+
+      return [...filtered].sort((left, right) => {
+        const leftUnavailable = left.containsDeletedItems || left.containsDiscardedItems;
+        const rightUnavailable = right.containsDeletedItems || right.containsDiscardedItems;
+        if (leftUnavailable !== rightUnavailable) {
+          return leftUnavailable ? 1 : -1;
+        }
+        return 0;
+      });
+    },
     [activeScenario, labels.dailyFallback, records],
   );
   const pageSize = 6;
   const totalPages = Math.max(1, Math.ceil(filteredRecords.length / pageSize));
   const safePage = Math.min(Math.max(currentPage, 1), totalPages);
+  const singleAddLook = useMemo(
+    () => records.find((record) => record.id === singleAddLookId) ?? null,
+    [records, singleAddLookId],
+  );
+  const singleAddLookBlocked =
+    singleAddLook?.containsDeletedItems ||
+    Boolean(singleAddLook?.items.some((item) => isDiscardedForDate(item.discardedAt, wearDate)));
   const pagedRecords = useMemo(
     () => filteredRecords.slice((safePage - 1) * pageSize, safePage * pageSize),
     [filteredRecords, safePage],
@@ -151,6 +175,17 @@ export function LookListShell({
   const addSelectedToDay = () => {
     if (!canAddToDay) return;
 
+    const hasUnavailableSelectedLook = records.some((record) => {
+      if (!selectedIds.includes(record.id)) return false;
+      if (record.containsDeletedItems) return true;
+      return record.items.some((item) => isDiscardedForDate(item.discardedAt, wearDate));
+    });
+
+    if (hasUnavailableSelectedLook) {
+      setErrorMessage(labels.addError);
+      return;
+    }
+
     startTransition(async () => {
       setErrorMessage(null);
       const response = await fetch("/api/looks/add-to-day", {
@@ -176,6 +211,13 @@ export function LookListShell({
   };
 
   const addSingleLookToDay = (lookId: string) => {
+    const look = records.find((record) => record.id === lookId);
+    if (!look) return;
+    if (look.containsDeletedItems || look.items.some((item) => isDiscardedForDate(item.discardedAt, wearDate))) {
+      setErrorMessage(labels.addError);
+      return;
+    }
+
     startTransition(async () => {
       setErrorMessage(null);
       const response = await fetch("/api/looks/add-to-day", {
@@ -316,6 +358,17 @@ export function LookListShell({
         >
           {labels.allScenarios}
         </button>
+        <button
+          type="button"
+          onClick={() => applyScenario("__unavailable__")}
+          className={
+            activeScenario === "__unavailable__"
+              ? "rounded-full bg-[hsl(var(--primary))] px-4 py-2 text-sm font-medium text-[hsl(var(--primary-foreground))]"
+              : "rounded-full border border-white/70 bg-white/90 px-4 py-2 text-sm font-medium"
+          }
+        >
+          {locale === "zh-CN" ? "已丢弃/删除" : "Discarded/Deleted"}
+        </button>
         {labels.scenarioOptions.map((scenario) => (
           <button
             key={scenario}
@@ -381,7 +434,7 @@ export function LookListShell({
                     type="button"
                     className="min-w-[112px]"
                     onClick={() => addSingleLookToDay(singleAddLookId)}
-                    disabled={!wearDate || isPending}
+                    disabled={!wearDate || isPending || singleAddLookBlocked}
                   >
                     {isPending ? labels.addingToDay : labels.addToDay}
                   </Button>
@@ -399,6 +452,9 @@ export function LookListShell({
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {pagedRecords.map((record) => {
             const active = selectedIds.includes(record.id);
+            const blockedForDate =
+              record.containsDeletedItems || record.items.some((item) => isDiscardedForDate(item.discardedAt, wearDate));
+            const visuallyMuted = record.containsDeletedItems || record.containsDiscardedItems;
             const itemTitles = record.items.slice(0, 3).map((item) => getItemDisplayTitle(item, "", ""));
             const content = (
               <>
@@ -434,7 +490,9 @@ export function LookListShell({
                 className={
                   active
                     ? "flex h-full flex-col rounded-[28px] border border-[hsl(var(--primary))] bg-[rgba(255,247,238,0.96)] p-4 text-left shadow-[0_14px_30px_rgba(77,57,36,0.12)]"
-                    : "flex h-full flex-col rounded-[28px] border border-white/70 bg-[rgba(255,250,245,0.86)] p-4 text-left shadow-[0_10px_24px_rgba(77,57,36,0.06)]"
+                    : visuallyMuted
+                      ? "flex h-full flex-col rounded-[28px] border border-[rgba(190,181,172,0.72)] bg-[rgba(235,230,225,0.88)] p-4 text-left text-[hsl(var(--muted-foreground))] shadow-[0_10px_24px_rgba(77,57,36,0.04)]"
+                      : "flex h-full flex-col rounded-[28px] border border-white/70 bg-[rgba(255,250,245,0.86)] p-4 text-left shadow-[0_10px_24px_rgba(77,57,36,0.06)]"
                 }
               >
                 {content}
@@ -442,7 +500,11 @@ export function LookListShell({
             ) : (
               <div
                 key={record.id}
-                className="flex h-full flex-col rounded-[28px] border border-white/70 bg-[rgba(255,250,245,0.86)] p-4 shadow-[0_10px_24px_rgba(77,57,36,0.06)] transition hover:translate-y-[-1px]"
+                className={
+                  visuallyMuted
+                    ? "flex h-full flex-col rounded-[28px] border border-[rgba(190,181,172,0.72)] bg-[rgba(235,230,225,0.88)] p-4 text-[hsl(var(--muted-foreground))] shadow-[0_10px_24px_rgba(77,57,36,0.04)]"
+                    : "flex h-full flex-col rounded-[28px] border border-white/70 bg-[rgba(255,250,245,0.86)] p-4 shadow-[0_10px_24px_rgba(77,57,36,0.06)] transition hover:translate-y-[-1px]"
+                }
               >
                 <Link href={`/${locale}/looks/${record.id}`} className="block flex-1">
                   {content}
@@ -453,6 +515,7 @@ export function LookListShell({
                     variant="outline"
                     className="border-[rgba(214,154,97,0.26)] bg-[rgba(250,244,238,0.96)] text-[hsl(var(--foreground))] hover:bg-[rgba(246,236,226,0.98)]"
                     onClick={() => setSingleAddLookId(record.id)}
+                    disabled={blockedForDate}
                   >
                     {labels.addToDay}
                   </Button>

@@ -6,6 +6,7 @@ import type { Locale } from "@/features/i18n/routing";
 import { getItems } from "@/features/wardrobe/api";
 import { getSessionUser } from "@/lib/auth/session";
 import { ootdService } from "@/server/services/ootd.service";
+import type { WardrobeItem } from "@/types/item";
 
 export default async function OotdEditPage({
   params,
@@ -33,7 +34,38 @@ export default async function OotdEditPage({
   }
 
   const backHref = month ? `/${locale}/ootd/${id}?month=${month}` : `/${locale}/ootd/${id}`;
-  const selectedItems = wardrobe.data.filter((item) => record.itemIds.includes(item.id));
+  const selectedItemsMap = new Map<string, WardrobeItem>();
+  for (const item of wardrobe.data) {
+    if (record.itemIds.includes(item.id)) {
+      selectedItemsMap.set(item.id, item);
+    }
+  }
+  for (const item of record.items) {
+    if (!selectedItemsMap.has(item.id)) {
+      selectedItemsMap.set(item.id, {
+        id: item.id,
+        name: item.name,
+        imageUrl: item.imageUrl,
+        itemType: item.itemType,
+        brand: item.brand,
+        category: item.category ?? "",
+        subcategory: item.subcategory,
+        color: item.color,
+        designElements: item.designElements,
+        material: item.material,
+        season: item.season ?? [],
+        tags: item.tags ?? [],
+        price: item.price,
+        discardedAt: item.discardedAt,
+        deletedAt: item.deletedAt,
+        status: item.status,
+        wearDays: 0,
+        costPerWear: 0,
+        updatedAt: record.wearDate,
+      });
+    }
+  }
+  const selectedItems = Array.from(selectedItemsMap.values());
   const composerLabels = {
     ...dict.ootd.composer,
     title: dict.ootd.detail.editTitle,

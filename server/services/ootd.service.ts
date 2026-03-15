@@ -28,9 +28,33 @@ function mapOotdRecord(record: {
       season: string[];
       tags: string[];
       price: Prisma.Decimal | number | null;
+      discardedAt: Date | null;
+      deletedAt: Date | null;
     };
   }>;
 }): OotdRecord {
+  const items = record.ootdItems.map((item) => ({
+    id: item.wardrobeItem.id,
+    name: item.wardrobeItem.name,
+    imageUrl: item.wardrobeItem.imageUrl ?? undefined,
+    itemType: item.wardrobeItem.itemType,
+    brand: item.wardrobeItem.brand ?? undefined,
+    category: item.wardrobeItem.category,
+    subcategory: item.wardrobeItem.subcategory ?? undefined,
+    color: item.wardrobeItem.color ?? undefined,
+    designElements: item.wardrobeItem.designElements ?? undefined,
+    material: item.wardrobeItem.material ?? undefined,
+    season: item.wardrobeItem.season,
+    tags: item.wardrobeItem.tags,
+    price:
+      item.wardrobeItem.price === null || item.wardrobeItem.price === undefined
+        ? undefined
+        : Number(item.wardrobeItem.price),
+    discardedAt: item.wardrobeItem.discardedAt?.toISOString().slice(0, 10) ?? undefined,
+    deletedAt: item.wardrobeItem.deletedAt?.toISOString() ?? undefined,
+    status: item.wardrobeItem.deletedAt ? "deleted" : item.wardrobeItem.discardedAt ? "discarded" : "active",
+  }));
+
   return {
     id: record.id,
     wearDate: record.wearDate.toISOString().slice(0, 10),
@@ -41,27 +65,21 @@ function mapOotdRecord(record: {
     notes: record.notes ?? undefined,
     imageUrl: record.imageUrl ?? undefined,
     usedDates: record.usedDates,
-    itemIds: record.ootdItems.map((item) => item.wardrobeItem.id),
-    itemTitles: record.ootdItems.map((item) => item.wardrobeItem.name),
-    items: record.ootdItems.map((item) => ({
-      id: item.wardrobeItem.id,
-      name: item.wardrobeItem.name,
-      imageUrl: item.wardrobeItem.imageUrl ?? undefined,
-      itemType: item.wardrobeItem.itemType,
-      brand: item.wardrobeItem.brand ?? undefined,
-      category: item.wardrobeItem.category,
-      subcategory: item.wardrobeItem.subcategory ?? undefined,
-      color: item.wardrobeItem.color ?? undefined,
-      designElements: item.wardrobeItem.designElements ?? undefined,
-      material: item.wardrobeItem.material ?? undefined,
-      season: item.wardrobeItem.season,
-      tags: item.wardrobeItem.tags,
-      price:
-        item.wardrobeItem.price === null || item.wardrobeItem.price === undefined
-          ? undefined
-          : Number(item.wardrobeItem.price),
-    })),
+    itemIds: items.map((item) => item.id),
+    itemTitles: items.map((item) => item.name),
+    containsDeletedItems: items.some((item) => item.status === "deleted"),
+    containsDiscardedItems: items.some((item) => item.status === "discarded"),
+    items,
   };
+}
+
+function isItemDiscardedForDate(
+  item: { discardedAt?: string | undefined; deletedAt?: string | undefined },
+  wearDate: Date,
+) {
+  if (item.deletedAt) return true;
+  if (!item.discardedAt) return false;
+  return item.discardedAt <= wearDate.toISOString().slice(0, 10);
 }
 
 export const ootdService = {
@@ -155,6 +173,19 @@ export const ootdService = {
     let nextDisplayOrder = 0;
 
     if (recordType === "daily") {
+      const availableItems = await prisma.wardrobeItem.count({
+        where: {
+          userId: params.userId,
+          id: { in: params.input.itemIds },
+          deletedAt: null,
+          OR: [{ discardedAt: null }, { discardedAt: { gt: start } }],
+        },
+      });
+
+      if (availableItems !== params.input.itemIds.length) {
+        throw new Error("OOTD contains unavailable item");
+      }
+
       const count = await prisma.ootdRecord.count({
         where: {
           userId: params.userId,
@@ -229,6 +260,8 @@ export const ootdService = {
                 season: true,
                 tags: true,
                 price: true,
+                discardedAt: true,
+                deletedAt: true,
               },
             },
           },
@@ -257,6 +290,21 @@ export const ootdService = {
     const recordType = params.input.recordType ?? existing.recordType;
     const wearDate = new Date(params.input.wearDate);
     const { start, end } = this.getDayRange(wearDate);
+
+    if (recordType === "daily") {
+      const availableItems = await prisma.wardrobeItem.count({
+        where: {
+          userId: params.userId,
+          id: { in: params.input.itemIds },
+          deletedAt: null,
+          OR: [{ discardedAt: null }, { discardedAt: { gt: start } }],
+        },
+      });
+
+      if (availableItems !== params.input.itemIds.length) {
+        throw new Error("OOTD contains unavailable item");
+      }
+    }
 
     const existingWearDate = existing.wearDate;
     let nextDisplayOrder = existing.displayOrder;
@@ -347,6 +395,8 @@ export const ootdService = {
                 season: true,
                 tags: true,
                 price: true,
+                discardedAt: true,
+                deletedAt: true,
               },
             },
           },
@@ -468,6 +518,8 @@ export const ootdService = {
                 season: true,
                 tags: true,
                 price: true,
+                discardedAt: true,
+                deletedAt: true,
               },
             },
           },
@@ -507,6 +559,8 @@ export const ootdService = {
                 season: true,
                 tags: true,
                 price: true,
+                discardedAt: true,
+                deletedAt: true,
               },
             },
           },
@@ -555,6 +609,8 @@ export const ootdService = {
                 season: true,
                 tags: true,
                 price: true,
+                discardedAt: true,
+                deletedAt: true,
               },
             },
           },
@@ -591,7 +647,15 @@ export const ootdService = {
       include: {
         ootdItems: {
           orderBy: { itemOrder: "asc" },
-          select: { wardrobeItemId: true, itemOrder: true },
+          include: {
+            wardrobeItem: {
+              select: {
+                id: true,
+                discardedAt: true,
+                deletedAt: true,
+              },
+            },
+          },
         },
       },
       orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
@@ -612,6 +676,20 @@ export const ootdService = {
 
     if (count + looks.length > 5) {
       throw new Error("Daily OOTD limit reached");
+    }
+
+    const invalidLook = looks.find((look) =>
+      look.ootdItems.some((item) => {
+        const discardedAt = (item as { wardrobeItem?: { discardedAt?: Date | null; deletedAt?: Date | null } }).wardrobeItem?.discardedAt;
+        const deletedAt = (item as { wardrobeItem?: { discardedAt?: Date | null; deletedAt?: Date | null } }).wardrobeItem?.deletedAt;
+        if (deletedAt) return true;
+        if (!discardedAt) return false;
+        return discardedAt.toISOString().slice(0, 10) <= start.toISOString().slice(0, 10);
+      }),
+    );
+
+    if (invalidLook) {
+      throw new Error("Look contains unavailable item");
     }
 
     let nextDisplayOrder = count;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import type { WardrobeItem } from "@/types/item";
@@ -48,6 +48,16 @@ interface DetailDictionary {
   back: string;
   edit: string;
   delete: string;
+  discard: string;
+  restoreDiscard: string;
+  discarded: string;
+  discardDate: string;
+  discardTitle: string;
+  restoreDiscardTitle: string;
+  discardConfirm: string;
+  restoreDiscardConfirm: string;
+  discarding: string;
+  restoring: string;
   deleting: string;
   deleteTitle: string;
   deleteConfirm: string;
@@ -77,6 +87,10 @@ function formatDate(value?: string, locale?: string) {
 function formatValue(value: string | number | undefined, fallback: string) {
   if (value === undefined || value === null || value === "") return fallback;
   return String(value);
+}
+
+function getDaysInMonth(year: number, month: number) {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
 }
 
 function DetailRow({
@@ -112,13 +126,18 @@ export function ItemDetailShell({
   const [isEditing, setIsEditing] = useState(false);
   const [isImageOpen, setIsImageOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDiscardDialogOpen, setIsDiscardDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDiscarding, setIsDiscarding] = useState(false);
+  const [discardDate, setDiscardDate] = useState(item.discardedAt ?? new Date().toISOString().slice(0, 10));
+  const [discardYear, discardMonth, discardDay] = discardDate.split("-").map(Number);
   const tags = currentItem.tags?.filter(Boolean) ?? [];
   const categoryLabel =
     (currentItem.itemType && formDict.categories[currentItem.itemType as CategoryKey]) || currentItem.category;
 
   useEffect(() => {
     setCurrentItem(item);
+    setDiscardDate(item.discardedAt ?? new Date().toISOString().slice(0, 10));
   }, [item]);
 
   const handleBack = () => {
@@ -149,6 +168,49 @@ export function ItemDetailShell({
       setIsDeleting(false);
     }
   };
+
+  const handleDiscard = async () => {
+    setIsDiscarding(true);
+    try {
+      const response = await fetch(`/api/items/${itemId}/discard`, currentItem.discardedAt
+        ? {
+            method: "DELETE",
+          }
+        : {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ discardedAt: discardDate }),
+          });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const payload = await response.json();
+      if (payload?.data) {
+        setCurrentItem(payload.data);
+      }
+      setIsDiscardDialogOpen(false);
+      router.refresh();
+    } finally {
+      setIsDiscarding(false);
+    }
+  };
+
+  const updateDiscardDate = (next: { year?: number; month?: number; day?: number }) => {
+    const nextYear = next.year ?? discardYear;
+    const nextMonth = next.month ?? discardMonth;
+    const nextDay = Math.min(next.day ?? discardDay, getDaysInMonth(nextYear, nextMonth));
+    setDiscardDate(
+      `${nextYear}-${String(nextMonth).padStart(2, "0")}-${String(nextDay).padStart(2, "0")}`,
+    );
+  };
+
+  const yearOptions = Array.from({ length: 11 }, (_, index) => new Date().getUTCFullYear() - 5 + index);
+  const monthOptions = Array.from({ length: 12 }, (_, index) => index + 1);
+  const dayOptions = Array.from({ length: getDaysInMonth(discardYear, discardMonth) }, (_, index) => index + 1);
 
   if (isEditing) {
     return (
@@ -184,6 +246,13 @@ export function ItemDetailShell({
           <Button type="button" variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
             {detailDict.delete}
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsDiscardDialogOpen(true)}
+          >
+            {currentItem.discardedAt ? detailDict.restoreDiscard : detailDict.discard}
+          </Button>
           <Button type="button" onClick={() => setIsEditing(true)}>
             {detailDict.edit}
           </Button>
@@ -200,6 +269,44 @@ export function ItemDetailShell({
         onConfirm={handleDelete}
         onCancel={() => setIsDeleteDialogOpen(false)}
       />
+
+      {isDiscardDialogOpen ? (
+        <div className="fixed inset-0 z-[140] flex items-center justify-center bg-[rgba(32,21,12,0.38)] p-4 backdrop-blur-[2px]">
+          <div className="w-full max-w-md rounded-[28px] border border-white/70 bg-[rgba(255,250,245,0.98)] p-6 shadow-[0_24px_80px_rgba(54,36,20,0.18)]">
+            <div className="space-y-2">
+              <div className="text-xl font-semibold text-[hsl(var(--foreground))]">
+                {currentItem.discardedAt ? detailDict.restoreDiscardTitle : detailDict.discardTitle}
+              </div>
+              <div className="text-sm leading-6 text-[hsl(var(--muted-foreground))]">
+                {currentItem.discardedAt ? detailDict.restoreDiscardConfirm : detailDict.discardConfirm}
+              </div>
+            </div>
+            {!currentItem.discardedAt ? (
+              <div className="mt-5 space-y-2">
+                <div className="text-sm font-medium">{detailDict.discardDate}</div>
+                <SegmentedDatePicker
+                  locale={locale}
+                  year={discardYear}
+                  month={discardMonth}
+                  day={discardDay}
+                  yearOptions={yearOptions}
+                  monthOptions={monthOptions}
+                  dayOptions={dayOptions}
+                  onChange={updateDiscardDate}
+                />
+              </div>
+            ) : null}
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <Button type="button" variant="outline" onClick={() => setIsDiscardDialogOpen(false)} disabled={isDiscarding}>
+                {detailDict.cancel}
+              </Button>
+              <Button type="button" variant="destructive" onClick={handleDiscard} disabled={!currentItem.discardedAt && !discardDate || isDiscarding}>
+                {isDiscarding ? (currentItem.discardedAt ? detailDict.restoring : detailDict.discarding) : (currentItem.discardedAt ? detailDict.restoreDiscard : detailDict.discard)}
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
         <Card className="space-y-5 p-6">
@@ -245,6 +352,14 @@ export function ItemDetailShell({
           ) : null}
           <div className="rounded-[22px] border border-white/70 bg-white/70 p-4">
             <div className="mb-2 text-sm font-semibold">{detailDict.overview}</div>
+            <DetailRow
+              label={detailDict.discard}
+              value={currentItem.discardedAt ? detailDict.discarded : detailDict.unknown}
+            />
+            <DetailRow
+              label={detailDict.discardDate}
+              value={currentItem.discardedAt ? formatDate(currentItem.discardedAt, locale) : detailDict.unknown}
+            />
             <DetailRow label={formDict.placeholders.category} value={getItemDisplayCategory(currentItem)} />
             <DetailRow label={formDict.placeholders.brand} value={currentItem.brand ?? detailDict.unknown} />
             <DetailRow label={formDict.placeholders.color} value={currentItem.color ?? detailDict.unknown} />
@@ -376,5 +491,116 @@ export function ItemDetailShell({
         </button>
       ) : null}
     </div>
+  );
+}
+
+function SegmentedDatePicker({
+  locale,
+  year,
+  month,
+  day,
+  yearOptions,
+  monthOptions,
+  dayOptions,
+  onChange,
+}: {
+  locale: string;
+  year: number;
+  month: number;
+  day: number;
+  yearOptions: number[];
+  monthOptions: number[];
+  dayOptions: number[];
+  onChange: (next: { year?: number; month?: number; day?: number }) => void;
+}) {
+  const [openPart, setOpenPart] = useState<"year" | "month" | "day" | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
+  const optionColumns = openPart === "year" ? "grid-cols-2" : "grid-cols-3";
+
+  useEffect(() => {
+    const onPointerDown = (event: MouseEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpenPart(null);
+      }
+    };
+
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, []);
+
+  return (
+    <div ref={rootRef} className="relative z-[220]">
+      <div className="flex w-full items-center rounded-2xl border border-[hsl(var(--border))] bg-[rgba(250,244,238,0.9)] px-4 py-3 text-sm">
+        <DateSegment
+          label={locale === "zh-CN" ? `${year}年` : String(year)}
+          active={openPart === "year"}
+          onClick={() => setOpenPart((current) => (current === "year" ? null : "year"))}
+        />
+        <span className="text-[hsl(var(--muted-foreground))]">/</span>
+        <DateSegment
+          label={locale === "zh-CN" ? `${month}月` : String(month)}
+          active={openPart === "month"}
+          onClick={() => setOpenPart((current) => (current === "month" ? null : "month"))}
+        />
+        <span className="text-[hsl(var(--muted-foreground))]">/</span>
+        <DateSegment
+          label={locale === "zh-CN" ? `${day}日` : String(day)}
+          active={openPart === "day"}
+          onClick={() => setOpenPart((current) => (current === "day" ? null : "day"))}
+        />
+      </div>
+
+      {openPart ? (
+        <div className="absolute inset-x-0 top-[calc(100%+8px)] z-[320] rounded-[22px] border border-white/75 bg-white/95 p-2 shadow-[0_16px_35px_rgba(77,57,36,0.12)]">
+          <div className={`grid max-h-60 gap-2 overflow-auto pr-1 ${optionColumns}`}>
+            {(openPart === "year" ? yearOptions : openPart === "month" ? monthOptions : dayOptions).map((option) => (
+              <button
+                key={`${openPart}-${option}`}
+                type="button"
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onChange({ [openPart]: option });
+                  setOpenPart(null);
+                }}
+                className="rounded-[16px] px-3 py-2 text-sm transition hover:bg-[rgba(255,244,235,0.95)]"
+              >
+                {locale === "zh-CN"
+                  ? openPart === "year"
+                    ? `${option}年`
+                    : openPart === "month"
+                      ? `${option}月`
+                      : `${option}日`
+                  : option}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function DateSegment({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "rounded-lg px-0.5 py-0.5 text-center transition",
+        active ? "bg-[rgba(255,244,235,0.95)] text-[hsl(var(--foreground))]" : "text-[hsl(var(--foreground))]",
+      ].join(" ")}
+    >
+      {label}
+    </button>
   );
 }

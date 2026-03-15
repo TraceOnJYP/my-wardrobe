@@ -12,6 +12,8 @@ export interface OotdRecord {
   imageUrl?: string;
   itemTitles: string[];
   usedDates?: string[];
+  containsDeletedItems?: boolean;
+  containsDiscardedItems?: boolean;
   items: Array<
     Pick<
       WardrobeItem,
@@ -28,6 +30,9 @@ export interface OotdRecord {
       | "season"
       | "tags"
       | "price"
+      | "discardedAt"
+      | "deletedAt"
+      | "status"
     >
   >;
 }

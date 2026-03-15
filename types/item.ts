@@ -34,5 +34,8 @@ export interface WardrobeItem {
   favoriteScore?: number;
   notes?: string;
   imageUrl?: string;
+  discardedAt?: string;
+  deletedAt?: string;
+  status?: "active" | "discarded" | "deleted";
   updatedAt: string;
 }
