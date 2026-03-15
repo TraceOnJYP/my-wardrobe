@@ -67,8 +67,6 @@ interface DetailDictionary {
   usage: string;
   manualWearDays: string;
   ootdWearDays: string;
-  manualUseDays: string;
-  ootdUseDays: string;
   purchase: string;
   notes: string;
   noNotes: string;
@@ -417,18 +415,6 @@ export function ItemDetailShell({
             <DetailRow
               label={formDict.placeholders.wearDays}
               value={currentItem.wearDays ?? 0}
-            />
-            <DetailRow
-              label={detailDict.manualUseDays}
-              value={currentItem.manualUseDays ?? 0}
-            />
-            <DetailRow
-              label={detailDict.ootdUseDays}
-              value={currentItem.ootdUseDays ?? 0}
-            />
-            <DetailRow
-              label={formDict.placeholders.useDays}
-              value={currentItem.useDays ?? 0}
             />
             <DetailRow
               label={formDict.placeholders.price}

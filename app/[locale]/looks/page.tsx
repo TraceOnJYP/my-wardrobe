@@ -41,6 +41,7 @@ export default async function LooksPage({
       labels={{
         ...dict.looks,
         allScenarios: locale === "zh-CN" ? "全部场景" : "All scenarios",
+        favorites: locale === "zh-CN" ? "收藏" : "Favorites",
         scenarioOptions: dict.ootd.composer.scenarioOptions,
         prevPage: dict.wardrobe.list.prevPage,
         nextPage: dict.wardrobe.list.nextPage,

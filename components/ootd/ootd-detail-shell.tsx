@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { DeleteOotdButton } from "@/components/ootd/delete-ootd-button";
+import { FavoriteToggleButton } from "@/components/ootd/favorite-toggle-button";
 import { Card } from "@/components/ui/card";
 import { getItemDisplayTitle } from "@/lib/item-display";
 import type { OotdRecord } from "@/types/ootd";
@@ -41,6 +42,8 @@ export function OotdDetailShell({
     edit: string;
     delete: string;
     deleting: string;
+    favorite?: string;
+    unfavorite?: string;
     cancel: string;
     deleteTitle: string;
     deleteConfirm: string;
@@ -87,6 +90,13 @@ export function OotdDetailShell({
           <p className="text-sm text-[hsl(var(--muted-foreground))]">{labels.subtitle}</p>
         </div>
         <div className="flex items-center gap-3">
+          <FavoriteToggleButton
+            recordId={record.id}
+            isFavorite={Boolean(record.isFavorite)}
+            activeLabel={labels.unfavorite ?? labels.edit}
+            inactiveLabel={labels.favorite ?? labels.edit}
+            onToggled={() => window.location.reload()}
+          />
           <Link
             href={resolvedEditHref}
             className="rounded-full border border-white/70 bg-white/85 px-4 py-2 text-sm font-medium"

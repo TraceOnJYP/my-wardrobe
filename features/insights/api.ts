@@ -366,7 +366,14 @@ export async function getAnalyticsSummary(
       return rightValue - leftValue;
     });
 
-  const seasonalCostByTypeItems = seasonalCostGroups.flatMap((group) => group.items);
+  const seasonalCostByTypeItems = seasonalCostGroups
+    .flatMap((group) => group.items)
+    .sort((left, right) => {
+      const leftValue = Number(left.metricValue.replace(/[^\d.]/g, "") ?? "0");
+      const rightValue = Number(right.metricValue.replace(/[^\d.]/g, "") ?? "0");
+      return rightValue - leftValue;
+    })
+    .slice(0, 10);
 
   const monthlyOotdCounts = getMonthlyTrend(filteredRecords, locale, range);
   const monthlySpendTrend = getSpendTrend(items, locale, range);

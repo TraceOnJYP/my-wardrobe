@@ -29,6 +29,7 @@ export default async function HomePage({
       subtitle: `${dict.home.highlights.wearsPrefix}${entry.metricValue}${dict.home.highlights.wearsSuffix}`,
       href: entry.href,
       item: entry.item,
+      showSubtitle: true,
     })) || [];
   const highlights = [
     {
@@ -57,6 +58,7 @@ export default async function HomePage({
         subtitle: `${entry.metricLabel} · ${entry.metricValue}`,
         href: entry.href,
         item: entry.item,
+        showSubtitle: true,
       })),
     })),
   ];
@@ -90,6 +92,9 @@ export default async function HomePage({
             tags: dict.wardrobe.card.tags,
             price: dict.wardrobe.card.price,
             empty: dict.wardrobe.card.emptyDetails,
+            status: locale === "zh-CN" ? "状态" : "Status",
+            deleted: locale === "zh-CN" ? "单品已删除" : "Item deleted",
+            discarded: locale === "zh-CN" ? "单品已丢弃" : "Item discarded",
           }}
         />
 

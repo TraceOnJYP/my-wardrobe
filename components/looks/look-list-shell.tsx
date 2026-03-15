@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { FavoriteToggleButton } from "@/components/ootd/favorite-toggle-button";
 import { ItemHoverDetails } from "@/components/shared/item-hover-details";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,7 @@ export function LookListShell({
     deleteError: string;
     wearDate: string;
     allScenarios: string;
+    favorites: string;
     scenarioOptions: string[];
     empty: string;
     dailyFallback: string;
@@ -90,6 +92,9 @@ export function LookListShell({
       tags: locale === "zh-CN" ? "标签" : "Tags",
       price: locale === "zh-CN" ? "价格" : "Price",
       empty: locale === "zh-CN" ? "暂无更多信息" : "No more details",
+      status: locale === "zh-CN" ? "状态" : "Status",
+      deleted: locale === "zh-CN" ? "单品已删除" : "Item deleted",
+      discarded: locale === "zh-CN" ? "单品已丢弃" : "Item discarded",
     }),
     [locale],
   );
@@ -110,6 +115,8 @@ export function LookListShell({
       const filtered =
         activeScenario === "all"
           ? records
+          : activeScenario === "__favorite__"
+            ? records.filter((record) => record.isFavorite)
           : activeScenario === "__unavailable__"
             ? records.filter((record) => record.containsDeletedItems || record.containsDiscardedItems)
             : records.filter((record) => (record.scenario?.trim() || labels.dailyFallback) === activeScenario);
@@ -375,6 +382,18 @@ export function LookListShell({
         </button>
         <button
           type="button"
+          data-look-favorite-target
+          onClick={() => applyScenario("__favorite__")}
+          className={
+            activeScenario === "__favorite__"
+              ? "rounded-full bg-[hsl(var(--primary))] px-4 py-2 text-sm font-medium text-[hsl(var(--primary-foreground))]"
+              : "rounded-full border border-white/70 bg-white/90 px-4 py-2 text-sm font-medium"
+          }
+        >
+          {labels.favorites}
+        </button>
+        <button
+          type="button"
           onClick={() => applyScenario("__unavailable__")}
           className={
             activeScenario === "__unavailable__"
@@ -485,21 +504,28 @@ export function LookListShell({
                     {record.items.length} {labels.items}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {record.items.map((item, index) => (
-                      <div
-                        key={`${record.id}-${index}-${item.id}`}
-                        className="group/details relative max-w-full rounded-full border border-[rgba(214,154,97,0.18)] bg-[rgba(255,248,242,0.92)] px-3 py-1.5 text-xs font-medium text-[hsl(var(--foreground))]"
-                      >
-                        <div className="truncate">
-                          {getItemDisplayTitle(
-                            item,
-                            locale === "zh-CN" ? "未记录品牌" : "Unknown brand",
-                            locale === "zh-CN" ? "未记录颜色" : "No color",
-                          )}
+                    {record.items.map((item, index) => {
+                      const unavailable = item.status === "deleted" || item.status === "discarded";
+                      return (
+                        <div
+                          key={`${record.id}-${index}-${item.id}`}
+                          className={
+                            unavailable
+                              ? "group/details relative max-w-full rounded-full border border-[rgba(190,181,172,0.42)] bg-[rgba(232,228,224,0.94)] px-3 py-1.5 text-xs font-medium text-[hsl(var(--muted-foreground))]"
+                              : "group/details relative max-w-full rounded-full border border-[rgba(214,154,97,0.18)] bg-[rgba(255,248,242,0.92)] px-3 py-1.5 text-xs font-medium text-[hsl(var(--foreground))]"
+                          }
+                        >
+                          <div className="truncate">
+                            {getItemDisplayTitle(
+                              item,
+                              locale === "zh-CN" ? "未记录品牌" : "Unknown brand",
+                              locale === "zh-CN" ? "未记录颜色" : "No color",
+                            )}
+                          </div>
+                          <ItemHoverDetails item={item} labels={hoverLabels} />
                         </div>
-                        <ItemHoverDetails item={item} labels={hoverLabels} />
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </>
@@ -532,7 +558,15 @@ export function LookListShell({
                 <Link href={`/${locale}/looks/${record.id}`} className="block flex-1">
                   {content}
                 </Link>
-                <div className="mt-4 flex justify-end pt-1">
+                <div className="mt-4 flex items-center justify-between gap-3 pt-1">
+                  <FavoriteToggleButton
+                    recordId={record.id}
+                    isFavorite={Boolean(record.isFavorite)}
+                    activeLabel={locale === "zh-CN" ? "取消收藏" : "Remove from favorites"}
+                    inactiveLabel={locale === "zh-CN" ? "收藏穿搭" : "Favorite look"}
+                    targetSelector="[data-look-favorite-target]"
+                    onToggled={() => router.refresh()}
+                  />
                   <Button
                     type="button"
                     variant="outline"

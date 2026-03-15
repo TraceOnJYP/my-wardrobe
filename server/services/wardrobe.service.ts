@@ -110,6 +110,7 @@ export async function attachDerivedUsage(userId: string, items: WardrobeItem[]) 
       },
       ootdRecord: {
         userId,
+        recordType: "daily",
         deletedAt: null,
       },
     },

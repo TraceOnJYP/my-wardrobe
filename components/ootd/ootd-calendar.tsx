@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { FavoriteToggleButton } from "@/components/ootd/favorite-toggle-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getItemDisplayTitle } from "@/lib/item-display";
@@ -103,6 +104,8 @@ export function OotdCalendar({
     deleteSelectedConfirm: string;
     cancel: string;
     selectedCount: string;
+    favorite: string;
+    unfavorite: string;
     moveUp: string;
     moveDown: string;
     itemCount: string;
@@ -286,9 +289,14 @@ export function OotdCalendar({
                   <div className="mb-2 flex items-center justify-between gap-2">
                     <div className="text-sm font-semibold">{day.day}</div>
                     {day.records.length > 0 ? (
-                      <span className="rounded-full bg-[rgba(214,154,97,0.14)] px-2 py-0.5 text-[10px] font-medium text-[hsl(var(--primary))]">
-                        {day.records.length}
-                      </span>
+                      <div className="flex items-center gap-1">
+                        {day.records.some((record) => record.isFavorite) ? (
+                          <span className="text-[12px] text-[#e1a520]">★</span>
+                        ) : null}
+                        <span className="rounded-full bg-[rgba(214,154,97,0.14)] px-2 py-0.5 text-[10px] font-medium text-[hsl(var(--primary))]">
+                          {day.records.length}
+                        </span>
+                      </div>
                     ) : day.isToday ? (
                       <span className="rounded-full bg-[rgba(214,154,97,0.16)] px-2 py-0.5 text-[10px] font-medium text-[hsl(var(--primary))]">
                         {labels.today}
@@ -466,8 +474,13 @@ export function OotdCalendar({
                         </div>
                       )}
                       <div className="min-w-0 flex-1">
-                        <div className="line-clamp-1 font-medium">
-                          {buildRecordCardTitle(record, labels)}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="line-clamp-1 font-medium">
+                            {buildRecordCardTitle(record, labels)}
+                          </div>
+                          {record.isFavorite ? (
+                            <span className="shrink-0 text-sm text-[#dc5a6a]">♥</span>
+                          ) : null}
                         </div>
                         <div className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">
                           {buildRecordItemTitles(record).slice(0, 3).join(" · ") || labels.title}
@@ -503,8 +516,18 @@ export function OotdCalendar({
                         </div>
                       )}
                       <div className="min-w-0 flex-1">
-                        <div className="line-clamp-1 font-medium">
-                          {buildRecordCardTitle(record, labels)}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="line-clamp-1 font-medium">
+                            {buildRecordCardTitle(record, labels)}
+                          </div>
+                          <FavoriteToggleButton
+                            recordId={record.id}
+                            isFavorite={Boolean(record.isFavorite)}
+                            activeLabel={labels.unfavorite}
+                            inactiveLabel={labels.favorite}
+                            className="h-7 w-7 shrink-0"
+                            onToggled={() => router.refresh()}
+                          />
                         </div>
                         <div className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">
                           {buildRecordItemTitles(record).slice(0, 3).join(" · ") || labels.title}

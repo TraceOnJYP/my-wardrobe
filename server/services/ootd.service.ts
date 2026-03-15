@@ -9,6 +9,7 @@ function mapOotdRecord(record: {
   recordType: "daily" | "look";
   sourceLookId?: string | null;
   displayOrder: number;
+  isFavorite: boolean;
   scenario: string | null;
   notes: string | null;
   imageUrl: string | null;
@@ -61,6 +62,7 @@ function mapOotdRecord(record: {
     recordType: record.recordType,
     sourceLookId: record.sourceLookId ?? undefined,
     displayOrder: record.displayOrder,
+    isFavorite: record.isFavorite,
     scenario: record.scenario ?? undefined,
     notes: record.notes ?? undefined,
     imageUrl: record.imageUrl ?? undefined,
@@ -229,6 +231,7 @@ export const ootdService = {
         sourceLookId: null,
         wearDate: start,
         displayOrder: nextDisplayOrder,
+        isFavorite: false,
         scenario: params.input.scenario,
         notes: params.input.notes,
         imageUrl: params.input.imageUrl,
@@ -364,6 +367,7 @@ export const ootdService = {
         sourceLookId: recordType === "look" ? null : existing.sourceLookId,
         wearDate: start,
         displayOrder: nextDisplayOrder,
+        isFavorite: existing.isFavorite,
         scenario: params.input.scenario,
         notes: params.input.notes,
         imageUrl: params.input.imageUrl,
@@ -621,6 +625,70 @@ export const ootdService = {
     if (!record) {
       return null;
     }
+
+    const usedDates =
+      record.recordType === "look"
+        ? (await this.getLookUsedDates({ userId: params.userId, lookIds: [record.id] })).get(record.id) ?? []
+        : undefined;
+
+    return mapOotdRecord({
+      ...record,
+      usedDates,
+    });
+  },
+
+  async setFavorite(params: { userId: string; recordId: string; isFavorite: boolean }) {
+    const existing = await prisma.ootdRecord.findFirst({
+      where: {
+        id: params.recordId,
+        userId: params.userId,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!existing) {
+      throw new Error("OOTD record not found");
+    }
+
+    const record = await prisma.ootdRecord.update({
+      where: {
+        id: params.recordId,
+      },
+      data: {
+        isFavorite: params.isFavorite,
+      },
+      include: {
+        ootdItems: {
+          orderBy: {
+            itemOrder: "asc",
+          },
+          include: {
+            wardrobeItem: {
+              select: {
+                id: true,
+                name: true,
+                imageUrl: true,
+                itemType: true,
+                brand: true,
+                category: true,
+                subcategory: true,
+                color: true,
+                designElements: true,
+                material: true,
+                season: true,
+                tags: true,
+                price: true,
+                discardedAt: true,
+                deletedAt: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
     const usedDates =
       record.recordType === "look"

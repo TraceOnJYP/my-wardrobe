@@ -12,6 +12,7 @@ interface HighlightItem {
   subtitle: string;
   href?: string;
   item?: WardrobeItem;
+  showSubtitle?: boolean;
 }
 
 interface HighlightGroup {
@@ -46,6 +47,9 @@ export function HomeGuidanceCard({
     tags: string;
     price: string;
     empty: string;
+    status?: string;
+    deleted?: string;
+    discarded?: string;
   };
 }) {
   return (
@@ -73,6 +77,11 @@ export function HomeGuidanceCard({
                       <div className="truncate text-sm font-medium">
                         <HighlightedText text={item.title} />
                       </div>
+                      {item.showSubtitle ? (
+                        <div className="mt-0.5 truncate text-[11px] font-medium text-[hsl(var(--muted-foreground))]">
+                          {item.subtitle}
+                        </div>
+                      ) : null}
                       {item.item ? (
                         <ItemHoverDetails
                           item={item.item}

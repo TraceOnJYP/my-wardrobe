@@ -15,6 +15,9 @@ interface ItemHoverLabels {
   tags: string;
   price: string;
   empty: string;
+  status?: string;
+  deleted?: string;
+  discarded?: string;
 }
 
 export function ItemHoverDetails({
@@ -29,6 +32,15 @@ export function ItemHoverDetails({
   const [position, setPosition] = useState({ top: 0, left: 0, width: 240, placement: "bottom" as "top" | "bottom" });
 
   const rows = [
+    {
+      label: labels.status,
+      value:
+        item.status === "deleted"
+          ? labels.deleted
+          : item.status === "discarded"
+            ? labels.discarded
+            : undefined,
+    },
     { label: labels.brand, value: item.brand },
     { label: labels.category, value: getItemDisplayCategory(item) },
     { label: labels.color, value: item.color },

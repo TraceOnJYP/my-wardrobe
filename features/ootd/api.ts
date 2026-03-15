@@ -9,6 +9,7 @@ function buildSampleRecords(locale: Locale): OotdRecord[] {
       id: "33333333-3333-3333-3333-333333333333",
       wearDate: "2026-03-01",
       recordType: "daily",
+      isFavorite: false,
       scenario: locale === "zh-CN" ? "上班" : "Work",
       itemIds: ["11111111-1111-1111-1111-111111111111"],
       itemTitles: [locale === "zh-CN" ? "黑色羊毛大衣" : "Black Wool Coat"],

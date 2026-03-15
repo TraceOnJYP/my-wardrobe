@@ -6,6 +6,7 @@ export interface OotdRecord {
   recordType?: "daily" | "look";
   sourceLookId?: string;
   displayOrder?: number;
+  isFavorite?: boolean;
   scenario?: string;
   notes?: string;
   itemIds: string[];

@@ -149,6 +149,7 @@ model OotdRecord {
   sourceLookId String?        @db.Uuid
   wearDate     DateTime       @db.Date
   displayOrder Int      @default(0)
+  isFavorite   Boolean        @default(false)
   scenario     String?        @db.VarChar(80)
   notes        String?
   imageUrl     String?        @db.VarChar(500)

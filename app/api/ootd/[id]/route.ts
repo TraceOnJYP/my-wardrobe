@@ -9,6 +9,10 @@ const moveOotdSchema = z.object({
   direction: z.enum(["up", "down"]),
 });
 
+const favoriteOotdSchema = z.object({
+  isFavorite: z.boolean(),
+});
+
 export async function GET(
   _request: Request,
   context: { params: Promise<{ id: string }> },
@@ -78,10 +82,25 @@ export async function PATCH(
   if (!user) return unauthorized();
 
   const json = await request.json();
-  const parsed = moveOotdSchema.safeParse(json);
+  const favoriteParsed = favoriteOotdSchema.safeParse(json);
+  if (favoriteParsed.success) {
+    try {
+      const { id } = await context.params;
+      const record = await ootdService.setFavorite({
+        userId: user.id,
+        recordId: id,
+        isFavorite: favoriteParsed.data.isFavorite,
+      });
+      return ok(record);
+    } catch (error) {
+      return badRequest(error instanceof Error ? error.message : "Failed to update favorite");
+    }
+  }
 
-  if (!parsed.success) {
-    return badRequest("Invalid payload", parsed.error.flatten());
+  const moveParsed = moveOotdSchema.safeParse(json);
+
+  if (!moveParsed.success) {
+    return badRequest("Invalid payload", moveParsed.error.flatten());
   }
 
   try {
@@ -89,8 +108,8 @@ export async function PATCH(
     await ootdService.moveRecord({
       userId: user.id,
       recordId: id,
-      wearDate: parsed.data.wearDate,
-      direction: parsed.data.direction,
+      wearDate: moveParsed.data.wearDate,
+      direction: moveParsed.data.direction,
     });
     return ok({ success: true });
   } catch (error) {

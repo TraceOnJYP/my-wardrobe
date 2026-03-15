@@ -19,6 +19,7 @@ export interface AnalyticsItemEntry {
   metricValue: string;
   href?: string;
   item?: WardrobeItem;
+  showSubtitle?: boolean;
 }
 
 export interface AnalyticsHighlightGroup {
