@@ -1,3 +1,5 @@
+import type { WardrobeItem } from "@/types/item";
+
 export interface AnalyticsBreakdownEntry {
   label: string;
   value: number;
@@ -15,13 +17,20 @@ export interface AnalyticsItemEntry {
   subtitle?: string;
   metricLabel: string;
   metricValue: string;
+  href?: string;
+  item?: WardrobeItem;
+}
+
+export interface AnalyticsHighlightGroup {
+  label: string;
+  items: AnalyticsItemEntry[];
 }
 
 export interface AnalyticsSummary {
   totalItems: number;
   totalSpend: number;
-  totalOotdCount: number;
-  unwornItemsCount: number;
+  averageCostPerWear: number;
+  unwornLastYearCount: number;
   categoryBreakdown: AnalyticsBreakdownEntry[];
   colorBreakdown: AnalyticsBreakdownEntry[];
   brandBreakdown: AnalyticsBreakdownEntry[];
@@ -31,4 +40,7 @@ export interface AnalyticsSummary {
   topWornItems: AnalyticsItemEntry[];
   idleItems: AnalyticsItemEntry[];
   costPerWearItems: AnalyticsItemEntry[];
+  seasonalCostByTypeItems: AnalyticsItemEntry[];
+  seasonalCostGroups: AnalyticsHighlightGroup[];
+  recentTopClothingItems: AnalyticsItemEntry[];
 }

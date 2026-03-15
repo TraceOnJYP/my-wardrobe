@@ -35,13 +35,10 @@
       "subtitle": "Quickly review the latest saved outfit records."
     },
     "highlights": {
-      "topWornLabel": "Most worn",
-      "idleLabel": "High-value idle",
-      "recentLabel": "Updated in 30 days",
+      "topWornLabel": "Most worn clothing in the last 3 months",
+      "seasonalCostLabel": "Highest seasonal wear cost",
       "wearsPrefix": "Worn ",
       "wearsSuffix": " times",
-      "idlePrefix": "Current price ",
-      "recentSubtitle": "items were updated in the last 30 days",
       "emptyTitle": "Not enough data yet",
       "emptySubtitle": "Add more items and outfit records, and this area will surface the key signals automatically."
     }
@@ -222,8 +219,8 @@
       "fields": {
         "clothing": ["Brand", "Type", "Color", "Design elements", "Material", "Sleeve type", "Collar type", "Fit", "Silhouette", "Style direction", "Season", "Price", "Price range", "Wear days", "Cost per wear", "Purchase year", "Purchase channel", "Item age", "Favorite score", "Tags"],
         "accessory": ["Brand", "Type", "Color", "Design elements", "Season", "Price", "Price range", "Wear days", "Cost per wear", "Purchase year", "Purchase channel", "Favorite score"],
-        "bag": ["Brand", "Type", "Color", "Size", "Material", "Design elements", "Season", "Scenario", "Price", "Price range", "Use days", "Cost per wear", "Purchase time", "Purchase channel", "Favorite score"],
-        "shoes": ["Brand", "Type", "Color", "Design elements", "Scenario", "Season", "Price", "Price range", "Wear days", "Cost per wear", "Purchase time", "Purchase channel", "Favorite score"],
+        "bag": ["Brand", "Type", "Color", "Size", "Material", "Design elements", "Season", "Scenario", "Price", "Price range", "Use days", "Cost per wear", "Purchase year", "Purchase channel", "Favorite score"],
+        "shoes": ["Brand", "Type", "Color", "Design elements", "Scenario", "Season", "Price", "Price range", "Wear days", "Cost per wear", "Purchase year", "Purchase channel", "Favorite score"],
         "jewelry": ["Brand", "Type", "Color family", "Design elements", "Price", "Price range", "Wear days", "Cost per wear", "Purchase year", "Channel", "Favorite score"]
       },
       "placeholders": {
@@ -246,6 +243,8 @@
         "useDays": "Use days",
         "costPerWear": "Cost per wear",
         "purchaseYear": "Purchase year",
+        "purchaseMonth": "Purchase month",
+        "purchaseDay": "Purchase day",
         "purchaseDate": "Purchase date",
         "purchaseChannel": "Purchase channel",
         "ageYears": "Item age",
@@ -464,8 +463,8 @@
     "cards": {
       "items": "Items",
       "spend": "Spend",
-      "ootd": "OOTD",
-      "idle": "Idle"
+      "avgCost": "Avg wear cost",
+      "idle": "Idle in 1 year"
     },
     "modules": {
       "spend": {
@@ -497,12 +496,20 @@
         "subtitle": "Your highest-frequency pieces."
       },
       "idle": {
-        "title": "Top 10 idle items",
-        "subtitle": "Pieces to review first when decluttering."
+        "title": "Top 10 not worn in a year",
+        "subtitle": "Pieces that have not appeared in the outfit calendar over the past year."
       },
       "costPerWear": {
-        "title": "Top 10 cost per wear",
-        "subtitle": "Pieces with the highest effective cost per wear."
+        "title": "Top 10 average wear cost",
+        "subtitle": "Pieces with the highest effective average wear cost."
+      },
+      "recentTopWorn": {
+        "title": "Most worn in 3 months",
+        "subtitle": "Based on the current filter, showing items that appeared most often in the outfit calendar in the last 3 months."
+      },
+      "seasonalCost": {
+        "title": "Highest seasonal wear cost",
+        "subtitle": "Based on the current filter, grouped by type to show the pieces with the highest average wear cost in the current season."
       }
     }
   },
@@ -575,7 +582,7 @@
     "templateDescription": "The template mirrors your current wardrobe workbook and includes sheets for clothing, accessories, bags, shoes, and jewelry.",
     "downloadTemplate": "Download template",
     "goManual": "Switch to manual add",
-    "templateFields": "Suggested clothing headers: id, image_name, brand, category, type, color, design elements, material, sleeve type, collar type, fit, silhouette, style direction, season, price, price range, wear days, cost per wear, purchase year, purchase channel, item age, favorite score, outfit pairing. The image ZIP matches `image_name` first, then falls back to `id.ext`.",
+    "templateFields": "Suggested clothing headers: id, image_name, brand, category, type, color, design elements, material, sleeve type, collar type, fit, silhouette, style direction, season, price, price range, wear days, cost per wear, purchase year, purchase month, purchase day, purchase channel, item age, favorite score, outfit pairing. The image ZIP matches `image_name` first, then falls back to `id.ext`.",
     "panel": {
       "chooseFile": "Choose file",
       "chooseImagesZip": "Choose image ZIP",

@@ -4,6 +4,7 @@ import { SectionHeader } from "@/components/shared/section-header";
 import { SearchBar } from "@/components/search/search-bar";
 import { WardrobeFilterBar } from "@/components/wardrobe/wardrobe-filter-bar";
 import { WardrobeGrid } from "@/components/wardrobe/wardrobe-grid";
+import { IdleFilterBanner } from "@/components/wardrobe/idle-filter-banner";
 import { WardrobeList } from "@/components/wardrobe/wardrobe-list";
 import { WardrobeTypeNav } from "@/components/wardrobe/wardrobe-type-nav";
 import { WardrobeViewToggle } from "@/components/wardrobe/wardrobe-view-toggle";
@@ -76,6 +77,7 @@ export default async function WardrobePage({
   searchParams: Promise<{
     view?: "grid" | "list";
     type?: string;
+    idle?: string;
     q?: string;
     category?: string;
     brand?: string;
@@ -89,6 +91,7 @@ export default async function WardrobePage({
   const {
     view = "list",
     type = "clothing",
+    idle = "",
     q = "",
     category = "",
     brand = "",
@@ -99,13 +102,13 @@ export default async function WardrobePage({
   } = await searchParams;
   const dict = await getDictionary(locale);
   const [items, searchBaseItems, categoryBaseItems, brandBaseItems, colorBaseItems] = await Promise.all([
-    getItems(locale, { q, type, category, brand, color, sort, order }),
-    getItems(locale, { type, category, brand, color }),
-    getItems(locale, { q, type, brand, color }),
-    getItems(locale, { q, type, category, color }),
-    getItems(locale, { q, type, category, brand }),
+    getItems(locale, { q, type, idle, category, brand, color, sort, order }),
+    getItems(locale, { type, idle, category, brand, color }),
+    getItems(locale, { q, type, idle, brand, color }),
+    getItems(locale, { q, type, idle, category, color }),
+    getItems(locale, { q, type, idle, category, brand }),
   ]);
-  const hasActiveQuery = Boolean(q || category || brand || color || (type && type !== "all"));
+  const hasActiveQuery = Boolean(q || category || brand || color || idle || (type && type !== "all"));
   const filterOptions = {
     category: uniqueSorted(categoryBaseItems.data.map((item) => getItemDisplayCategory(item)), locale),
     brand: uniqueSorted(
@@ -160,6 +163,9 @@ export default async function WardrobePage({
           currentType={type}
           options={typeOptions}
         />
+        {idle === "year" ? (
+          <IdleFilterBanner locale={locale} />
+        ) : null}
         <div className="relative z-20 flex items-center justify-between gap-4 overflow-visible">
           <WardrobeFilterBar placeholders={dict.wardrobe.filters} options={filterOptions} />
           <WardrobeViewToggle initialView={view} labels={dict.wardrobe.view} />

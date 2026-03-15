@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { ItemHoverDetails } from "@/components/shared/item-hover-details";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getItemDisplayTitle } from "@/lib/item-display";
@@ -13,7 +14,7 @@ import type { OotdRecord } from "@/types/ootd";
 function buildTitle(record: OotdRecord, fallback: string) {
   const scenario = record.scenario?.trim() || fallback;
   const notes = record.notes?.trim();
-  return notes ? `${scenario} ${notes}` : scenario;
+  return notes ? `${scenario}（${notes}）` : scenario;
 }
 
 function isDiscardedForDate(value: string | undefined, wearDate: string) {
@@ -78,6 +79,20 @@ export function LookListShell({
   const [activeScenario, setActiveScenario] = useState<string>(initialScenario || "all");
   const [currentPage, setCurrentPage] = useState<number>(initialPage || 1);
   const [year, month, day] = wearDate.split("-").map(Number);
+  const hoverLabels = useMemo(
+    () => ({
+      brand: locale === "zh-CN" ? "品牌" : "Brand",
+      category: locale === "zh-CN" ? "类型" : "Type",
+      color: locale === "zh-CN" ? "颜色" : "Color",
+      designElements: locale === "zh-CN" ? "设计元素" : "Design elements",
+      material: locale === "zh-CN" ? "材质" : "Material",
+      season: locale === "zh-CN" ? "季节" : "Season",
+      tags: locale === "zh-CN" ? "标签" : "Tags",
+      price: locale === "zh-CN" ? "价格" : "Price",
+      empty: locale === "zh-CN" ? "暂无更多信息" : "No more details",
+    }),
+    [locale],
+  );
 
   const selectedCount = selectedIds.length;
   const canAddToDay = selectedCount > 0 && wearDate;
@@ -455,7 +470,6 @@ export function LookListShell({
             const blockedForDate =
               record.containsDeletedItems || record.items.some((item) => isDiscardedForDate(item.discardedAt, wearDate));
             const visuallyMuted = record.containsDeletedItems || record.containsDiscardedItems;
-            const itemTitles = record.items.slice(0, 3).map((item) => getItemDisplayTitle(item, "", ""));
             const content = (
               <>
                 {record.imageUrl ? (
@@ -470,13 +484,22 @@ export function LookListShell({
                   <div className="text-xs text-[hsl(var(--muted-foreground))]">
                     {record.items.length} {labels.items}
                   </div>
-                  <div className="space-y-1 text-sm text-[hsl(var(--muted-foreground))]">
-                    {itemTitles.map((title, index) => (
-                      <div key={`${record.id}-${index}-${title}`} className="truncate">
-                        {title}
+                  <div className="flex flex-wrap gap-2">
+                    {record.items.map((item, index) => (
+                      <div
+                        key={`${record.id}-${index}-${item.id}`}
+                        className="group/details relative max-w-full rounded-full border border-[rgba(214,154,97,0.18)] bg-[rgba(255,248,242,0.92)] px-3 py-1.5 text-xs font-medium text-[hsl(var(--foreground))]"
+                      >
+                        <div className="truncate">
+                          {getItemDisplayTitle(
+                            item,
+                            locale === "zh-CN" ? "未记录品牌" : "Unknown brand",
+                            locale === "zh-CN" ? "未记录颜色" : "No color",
+                          )}
+                        </div>
+                        <ItemHoverDetails item={item} labels={hoverLabels} />
                       </div>
                     ))}
-                    {record.notes ? <div className="line-clamp-2">{record.notes}</div> : <div>{labels.noNotes}</div>}
                   </div>
                 </div>
               </>

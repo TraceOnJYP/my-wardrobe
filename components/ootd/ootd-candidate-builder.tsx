@@ -140,16 +140,15 @@ export function OotdCandidateBuilder({
   };
 
   const searchableItems = useMemo(() => {
-    const merged = [...wardrobeItems, ...items];
     const seen = new Set<string>();
 
-    return merged.filter((item) => {
+    return wardrobeItems.filter((item) => {
       if (item.deletedAt || item.discardedAt) return false;
       if (seen.has(item.id)) return false;
       seen.add(item.id);
       return true;
     });
-  }, [items, wardrobeItems]);
+  }, [wardrobeItems]);
   const indexedSearchableItems = useMemo(
     () => searchableItems.map((item) => getIndexedWardrobeItemSearch(item)),
     [searchableItems],

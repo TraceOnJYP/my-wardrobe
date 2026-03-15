@@ -10,7 +10,7 @@ import type { Locale } from "@/features/i18n/routing";
 import { getAnalyticsSummary } from "@/features/insights/api";
 
 type InsightTab = "all" | "clothing" | "accessory" | "bag" | "shoes" | "jewelry" | "other";
-type InsightRange = "6" | "12" | "24";
+type InsightRange = "6" | "12" | "all";
 
 export default async function InsightsPage({
   params,
@@ -26,11 +26,11 @@ export default async function InsightsPage({
   const { locale } = await params;
   const { type = "all", spendRange = "6", ootdRange = "6" } = await searchParams;
   const dict = await getDictionary(locale);
-  const spendMonthRange = spendRange === "12" || spendRange === "24" ? Number(spendRange) : 6;
-  const ootdMonthRange = ootdRange === "12" || ootdRange === "24" ? Number(ootdRange) : 6;
+  const spendMonthRange = spendRange === "12" ? 12 : spendRange === "all" ? "all" : 6;
+  const ootdMonthRange = ootdRange === "12" ? 12 : ootdRange === "all" ? "all" : 6;
   const [spendSummary, ootdSummary] = await Promise.all([
-    getAnalyticsSummary(locale, type, spendMonthRange as 6 | 12 | 24),
-    getAnalyticsSummary(locale, type, ootdMonthRange as 6 | 12 | 24),
+    getAnalyticsSummary(locale, type, spendMonthRange),
+    getAnalyticsSummary(locale, type, ootdMonthRange),
   ]);
   const summary = spendSummary;
   const tabs = [
@@ -45,18 +45,32 @@ export default async function InsightsPage({
   const rangeTabs = [
     { value: "6", label: locale === "zh-CN" ? "近 6 个月" : "6M" },
     { value: "12", label: locale === "zh-CN" ? "近 12 个月" : "12M" },
-    { value: "24", label: locale === "zh-CN" ? "近 24 个月" : "24M" },
+    { value: "all", label: locale === "zh-CN" ? "全部时间" : "All time" },
   ] as const satisfies Array<{ value: InsightRange; label: string }>;
   const getRangeLabel = (value: InsightRange) =>
-    locale === "zh-CN" ? `最近 ${value} 个月` : `the last ${value} months`;
+    value === "all"
+      ? locale === "zh-CN"
+        ? "全部时间"
+        : "all time"
+      : locale === "zh-CN"
+        ? `最近 ${value} 个月`
+        : `the last ${value} months`;
   const spendSubtitle =
-    locale === "zh-CN"
-      ? `按照购买时间统计${getRangeLabel(spendRange)}的消费变化。`
-      : `Track spend changes over ${getRangeLabel(spendRange)} based on purchase dates.`;
+    spendRange === "all"
+      ? locale === "zh-CN"
+        ? "按照购买时间统计全部时间的年度消费变化。"
+        : "Track yearly spend changes across all time based on purchase dates."
+      : locale === "zh-CN"
+        ? `按照购买时间统计${getRangeLabel(spendRange)}的消费变化。`
+        : `Track spend changes over ${getRangeLabel(spendRange)} based on purchase dates.`;
   const ootdSubtitle =
-    locale === "zh-CN"
-      ? `${getRangeLabel(ootdRange)}的穿搭记录趋势。`
-      : `Outfit activity across ${getRangeLabel(ootdRange)}.`;
+    ootdRange === "all"
+      ? locale === "zh-CN"
+        ? "按年份查看全部时间的穿搭记录变化。"
+        : "Review yearly outfit activity across all time."
+      : locale === "zh-CN"
+        ? `${getRangeLabel(ootdRange)}的穿搭记录趋势。`
+        : `Outfit activity across ${getRangeLabel(ootdRange)}.`;
   const renderRangeActions = (kind: "spend" | "ootd", currentRange: InsightRange) =>
     rangeTabs.map((tab) => (
       <Link
@@ -92,7 +106,12 @@ export default async function InsightsPage({
         ))}
       </div>
 
-      <SummaryCards summary={summary.data} labels={dict.insights.cards} locale={locale} />
+      <SummaryCards
+        summary={summary.data}
+        labels={dict.insights.cards}
+        locale={locale}
+        links={{ idle: `/${locale}/wardrobe?type=all&idle=year&view=list` }}
+      />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <TrendCard
@@ -160,6 +179,23 @@ export default async function InsightsPage({
           title={dict.insights.modules.costPerWear.title}
           subtitle={dict.insights.modules.costPerWear.subtitle}
           entries={summary.data.costPerWearItems}
+          emptyText={dict.insights.empty}
+        />
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        <RankingCard
+          locale={locale}
+          title={dict.insights.modules.recentTopWorn.title}
+          subtitle={dict.insights.modules.recentTopWorn.subtitle}
+          entries={summary.data.recentTopClothingItems}
+          emptyText={dict.insights.empty}
+        />
+        <RankingCard
+          locale={locale}
+          title={dict.insights.modules.seasonalCost.title}
+          subtitle={dict.insights.modules.seasonalCost.subtitle}
+          entries={summary.data.seasonalCostByTypeItems}
           emptyText={dict.insights.empty}
         />
       </div>

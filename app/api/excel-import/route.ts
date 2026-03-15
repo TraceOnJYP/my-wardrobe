@@ -193,8 +193,35 @@ function mapRowToItem(sheetName: SupportedSheet, row: SheetRow): CreateWardrobeI
     return undefined;
   };
 
+  const getPurchaseMeta = () => {
+    const purchaseDate = getDate("购买时间", "购入日期");
+    const purchaseYear = getInteger("购入年份", "购买年份");
+    const purchaseMonth = getInteger("购入月份", "购买月份");
+    const purchaseDay = getInteger("购入日期", "购买日期");
+
+    if (purchaseDate) {
+      return {
+        purchaseDate,
+        purchaseYear: purchaseYear ?? Number(purchaseDate.slice(0, 4)),
+      };
+    }
+
+    if (purchaseYear && purchaseMonth) {
+      return {
+        purchaseYear,
+        purchaseDate: `${purchaseYear}-${String(purchaseMonth).padStart(2, "0")}-${String(Math.max(1, purchaseDay ?? 1)).padStart(2, "0")}`,
+      };
+    }
+
+    return {
+      purchaseYear,
+      purchaseDate: undefined as string | undefined,
+    };
+  };
+
   switch (sheetName) {
     case "服饰清单": {
+      const purchaseMeta = getPurchaseMeta();
       const category = getText("品类", "大类");
       const type = getText("类型", "类别");
       const subcategory = getText("款式", "小类");
@@ -218,7 +245,8 @@ function mapRowToItem(sheetName: SupportedSheet, row: SheetRow): CreateWardrobeI
         priceRange: getText("价格段") || undefined,
         wearDays: getInteger("穿着天数"),
         costPerWear: getNumber("单次价格"),
-        purchaseYear: getInteger("购入年份"),
+        purchaseYear: purchaseMeta.purchaseYear,
+        purchaseDate: purchaseMeta.purchaseDate,
         purchaseChannel: getText("购入渠道", "购买渠道", "渠道") || undefined,
         ageYears: getNumber("衣服年龄"),
         favoriteScore: getInteger("喜爱指数"),
@@ -227,6 +255,7 @@ function mapRowToItem(sheetName: SupportedSheet, row: SheetRow): CreateWardrobeI
       };
     }
     case "配饰清单": {
+      const purchaseMeta = getPurchaseMeta();
       const category = getText("品类", "大类") || "配饰";
       const type = getText("类型", "类别");
       const subcategory = getText("款式", "小类");
@@ -244,12 +273,14 @@ function mapRowToItem(sheetName: SupportedSheet, row: SheetRow): CreateWardrobeI
         priceRange: getText("价格段") || undefined,
         wearDays: getInteger("穿着天数"),
         costPerWear: getNumber("单次价格"),
-        purchaseYear: getInteger("购入年份"),
+        purchaseYear: purchaseMeta.purchaseYear,
+        purchaseDate: purchaseMeta.purchaseDate,
         purchaseChannel: getText("购入渠道", "购买渠道", "渠道") || undefined,
         favoriteScore: getInteger("喜爱指数"),
       };
     }
     case "包清单": {
+      const purchaseMeta = getPurchaseMeta();
       const category = getText("品类");
       const type = getText("类型", "类别");
       const subcategory = getText("款式", "小类");
@@ -270,12 +301,14 @@ function mapRowToItem(sheetName: SupportedSheet, row: SheetRow): CreateWardrobeI
         priceRange: getText("价格段") || undefined,
         useDays: getInteger("使用天数"),
         costPerWear: getNumber("单次价格"),
-        purchaseDate: getDate("购买时间"),
+        purchaseYear: purchaseMeta.purchaseYear,
+        purchaseDate: purchaseMeta.purchaseDate,
         purchaseChannel: getText("购买渠道", "购入渠道", "渠道") || undefined,
         favoriteScore: getInteger("喜爱指数"),
       };
     }
     case "鞋类清单": {
+      const purchaseMeta = getPurchaseMeta();
       const category = getText("品类");
       const type = getText("类型", "类别");
       const subcategory = getText("款式", "小类");
@@ -294,12 +327,14 @@ function mapRowToItem(sheetName: SupportedSheet, row: SheetRow): CreateWardrobeI
         priceRange: getText("价格段") || undefined,
         wearDays: getInteger("穿着天数"),
         costPerWear: getNumber("单次价格"),
-        purchaseDate: getDate("购买时间"),
+        purchaseYear: purchaseMeta.purchaseYear,
+        purchaseDate: purchaseMeta.purchaseDate,
         purchaseChannel: getText("购买渠道", "购入渠道", "渠道") || undefined,
         favoriteScore: getInteger("喜爱指数"),
       };
     }
     case "贵重首饰清单": {
+      const purchaseMeta = getPurchaseMeta();
       const category = getText("品类");
       const type = getText("类型", "类别");
       const subcategory = getText("款式", "小类");
@@ -316,7 +351,8 @@ function mapRowToItem(sheetName: SupportedSheet, row: SheetRow): CreateWardrobeI
         priceRange: getText("价格段") || undefined,
         useDays: getInteger("佩戴天数", "使用天数"),
         costPerWear: getNumber("单次价格"),
-        purchaseYear: getInteger("购入年份"),
+        purchaseYear: purchaseMeta.purchaseYear,
+        purchaseDate: purchaseMeta.purchaseDate,
         purchaseChannel: getText("渠道", "购买渠道", "购入渠道") || undefined,
         favoriteScore: getInteger("喜爱指数"),
       };

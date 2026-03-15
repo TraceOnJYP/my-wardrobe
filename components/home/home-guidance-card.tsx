@@ -1,11 +1,22 @@
 import Link from "next/link";
 
+import { HighlightedText } from "@/components/shared/highlighted-text";
+import { ItemHoverDetails } from "@/components/shared/item-hover-details";
 import { Card } from "@/components/ui/card";
+import type { WardrobeItem } from "@/types/item";
 
 interface HighlightItem {
+  id: string;
   label: string;
   title: string;
   subtitle: string;
+  href?: string;
+  item?: WardrobeItem;
+}
+
+interface HighlightGroup {
+  label: string;
+  items: HighlightItem[];
 }
 
 export function HomeGuidanceCard({
@@ -16,14 +27,26 @@ export function HomeGuidanceCard({
   primaryLabel,
   secondaryHref,
   secondaryLabel,
+  hoverLabels,
 }: {
   title: string;
   subtitle: string;
-  highlights: HighlightItem[];
+  highlights: HighlightGroup[];
   primaryHref: string;
   primaryLabel: string;
   secondaryHref: string;
   secondaryLabel: string;
+  hoverLabels: {
+    brand: string;
+    category: string;
+    color: string;
+    designElements: string;
+    material: string;
+    season: string;
+    tags: string;
+    price: string;
+    empty: string;
+  };
 }) {
   return (
     <Card className="space-y-5 p-6">
@@ -32,17 +55,44 @@ export function HomeGuidanceCard({
         <div className="mt-1 text-sm leading-6 text-[hsl(var(--muted-foreground))]">{subtitle}</div>
       </div>
 
-      <div className="space-y-3">
-        {highlights.map((item) => (
+      <div className="space-y-4">
+        {highlights.map((group) => (
           <div
-            key={item.label}
+            key={group.label}
             className="rounded-[22px] border border-white/60 bg-[rgba(255,255,255,0.62)] px-4 py-4"
           >
             <div className="text-xs font-medium uppercase tracking-[0.18em] text-[hsl(var(--muted-foreground))]">
-              {item.label}
+              {group.label}
             </div>
-            <div className="mt-2 text-base font-semibold">{item.title}</div>
-            <div className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">{item.subtitle}</div>
+            <div className="mt-3">
+              <div className="flex flex-wrap gap-2">
+              {group.items.map((item) => {
+                const content = (
+                  <div className="rounded-full border border-[rgba(214,154,97,0.24)] bg-[rgba(255,248,242,0.92)] px-3 py-2 text-sm transition hover:border-[rgba(214,154,97,0.4)] hover:bg-white">
+                    <div className="group/details relative max-w-full">
+                      <div className="truncate text-sm font-medium">
+                        <HighlightedText text={item.title} />
+                      </div>
+                      {item.item ? (
+                        <ItemHoverDetails
+                          item={item.item}
+                          labels={hoverLabels}
+                        />
+                      ) : null}
+                    </div>
+                  </div>
+                );
+
+                return item.href ? (
+                  <Link key={item.id} href={item.href} className="block max-w-full">
+                    {content}
+                  </Link>
+                ) : (
+                  <div key={item.id}>{content}</div>
+                );
+              })}
+              </div>
+            </div>
           </div>
         ))}
       </div>

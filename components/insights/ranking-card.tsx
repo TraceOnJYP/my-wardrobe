@@ -29,7 +29,7 @@ export function RankingCard({
           {entries.map((entry, index) => (
             <Link
               key={entry.id}
-              href={`/${locale}/wardrobe/${entry.id}`}
+              href={entry.href ?? `/${locale}/wardrobe/${entry.id}`}
               className="flex items-center justify-between gap-3 rounded-[20px] border border-white/70 bg-white/80 px-4 py-3 transition hover:translate-y-[-1px]"
             >
               <div className="min-w-0">

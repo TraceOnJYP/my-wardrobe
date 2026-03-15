@@ -11,6 +11,7 @@ interface WardrobeQuery {
   category?: string;
   brand?: string;
   color?: string;
+  idle?: string;
   sort?: string;
   order?: string;
 }
@@ -116,6 +117,7 @@ export async function getItems(locale: Locale, query: WardrobeQuery = {}) {
     category: query.category?.trim(),
     brand: query.brand?.trim(),
     color: query.color?.trim(),
+    idle: query.idle?.trim(),
     sort: query.sort?.split(",")[0] ?? "",
     order: query.order?.split(",")[0] === "asc" ? "asc" : "desc",
   };
@@ -124,7 +126,8 @@ export async function getItems(locale: Locale, query: WardrobeQuery = {}) {
       (normalizedQuery.type && normalizedQuery.type !== "all") ||
       normalizedQuery.category ||
       normalizedQuery.brand ||
-      normalizedQuery.color,
+      normalizedQuery.color ||
+      normalizedQuery.idle,
   );
 
   const filterLocalItems = (items: WardrobeItem[]) =>
@@ -155,7 +158,6 @@ export async function getItems(locale: Locale, query: WardrobeQuery = {}) {
         const colorMatch = normalizedQuery.color
           ? (item.color ?? "").toLowerCase().includes(normalizedQuery.color.toLowerCase())
           : true;
-
         return queryMatch && typeMatch && categoryMatch && brandMatch && colorMatch;
       });
 
@@ -303,7 +305,32 @@ export async function getItems(locale: Locale, query: WardrobeQuery = {}) {
       updatedAt: record.updatedAt.toISOString(),
     }));
 
-    const derivedItems = await attachDerivedUsage(user.id, mappedRecords);
+    let derivedItems = await attachDerivedUsage(user.id, mappedRecords);
+
+    if (normalizedQuery.idle === "year" && derivedItems.length > 0) {
+      const cutoff = new Date();
+      cutoff.setUTCFullYear(cutoff.getUTCFullYear() - 1);
+      const activeRows = await prisma.ootdItem.findMany({
+        where: {
+          wardrobeItemId: {
+            in: derivedItems.map((item) => item.id),
+          },
+          ootdRecord: {
+            deletedAt: null,
+            recordType: "daily",
+            wearDate: {
+              gte: cutoff,
+            },
+          },
+        },
+        select: {
+          wardrobeItemId: true,
+        },
+        distinct: ["wardrobeItemId"],
+      });
+      const activeItemIds = new Set(activeRows.map((row) => row.wardrobeItemId));
+      derivedItems = derivedItems.filter((item) => !activeItemIds.has(item.id));
+    }
 
     return {
       data: sortItems(filterLocalItems(derivedItems)),

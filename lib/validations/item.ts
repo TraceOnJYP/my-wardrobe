@@ -24,7 +24,7 @@ export const createWardrobeItemSchema = z
     wearDays: z.number().optional(),
     useDays: z.number().optional(),
     costPerWear: z.number().optional(),
-    purchaseYear: z.number().optional(),
+    purchaseYear: z.number().min(1951).optional(),
     purchaseDate: z.string().optional(),
     purchaseChannel: z.string().optional(),
     ageYears: z.number().optional(),
@@ -34,16 +34,19 @@ export const createWardrobeItemSchema = z
   })
   .superRefine((input, ctx) => {
     const requiredByType: Record<string, string[]> = {
-      clothing: ["brand", "category", "color", "material"],
-      accessory: ["brand", "category", "color"],
-      bag: ["brand", "category", "color", "size", "material"],
-      shoes: ["brand", "category", "color"],
-      jewelry: ["brand", "category", "color"],
+      clothing: ["brand", "category", "color", "material", "purchaseYear"],
+      accessory: ["brand", "category", "color", "purchaseYear"],
+      bag: ["brand", "category", "color", "size", "material", "purchaseYear"],
+      shoes: ["brand", "category", "color", "purchaseYear"],
+      jewelry: ["brand", "category", "color", "purchaseYear"],
     };
 
     for (const field of requiredByType[input.itemType]) {
       const value = input[field as keyof typeof input];
-      if (typeof value !== "string" || value.trim() === "") {
+      const isMissingString = typeof value === "string" && value.trim() === "";
+      const isMissingNumber = typeof value === "number" ? Number.isNaN(value) || value < 1951 : value === undefined;
+
+      if ((typeof value === "string" && isMissingString) || (field === "purchaseYear" && isMissingNumber) || value === undefined) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: [field],

@@ -52,9 +52,9 @@ export function OotdTimeline({
                     {labels.previewItems}
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {record.itemTitles.slice(0, 4).map((title) => (
+                    {record.itemTitles.slice(0, 4).map((title, index) => (
                       <span
-                        key={`${record.id}-${title}`}
+                        key={`${record.id}-${index}-${title}`}
                         className="rounded-full bg-[rgba(121,82,48,0.08)] px-3 py-1 text-xs font-medium text-[hsl(var(--foreground))]"
                       >
                         {title}

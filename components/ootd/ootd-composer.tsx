@@ -205,23 +205,32 @@ export function OotdComposer({
       setInternalSelectedIds(initialSelectedIds ?? []);
     }
   }, [controlledSelectedIds, initialSelectedIds]);
-  const uniqueWardrobeItems = useMemo(() => {
-    const seen = new Set<string>();
+  const allWardrobeItems = useMemo(() => {
+    const seenIds = new Set<string>();
     return wardrobeItems.filter((item) => {
+      if (seenIds.has(item.id)) {
+        return false;
+      }
+      seenIds.add(item.id);
+      return true;
+    });
+  }, [wardrobeItems]);
+  const searchableWardrobeItems = useMemo(() => {
+    const seenFingerprints = new Set<string>();
+    return allWardrobeItems.filter((item) => {
       if (item.deletedAt || item.discardedAt) {
         return false;
       }
 
       const fingerprint = buildItemFingerprint(item);
-
-      if (seen.has(fingerprint)) {
+      if (seenFingerprints.has(fingerprint)) {
         return false;
       }
 
-      seen.add(fingerprint);
+      seenFingerprints.add(fingerprint);
       return true;
     });
-  }, [wardrobeItems]);
+  }, [allWardrobeItems]);
   const yearOptions = useMemo(() => {
     const currentYear = new Date().getUTCFullYear();
     return Array.from({ length: 11 }, (_, index) => currentYear - 5 + index);
@@ -232,12 +241,12 @@ export function OotdComposer({
     [month, year],
   );
   const wardrobeItemMap = useMemo(
-    () => new Map(uniqueWardrobeItems.map((item) => [item.id, item])),
-    [uniqueWardrobeItems],
+    () => new Map(allWardrobeItems.map((item) => [item.id, item])),
+    [allWardrobeItems],
   );
   const indexedWardrobeItems = useMemo(
-    () => uniqueWardrobeItems.map((item) => getIndexedWardrobeItemSearch(item)),
-    [uniqueWardrobeItems],
+    () => searchableWardrobeItems.map((item) => getIndexedWardrobeItemSearch(item)),
+    [searchableWardrobeItems],
   );
 
   const updateWearDate = (next: { year?: number; month?: number; day?: number }) => {
@@ -265,13 +274,13 @@ export function OotdComposer({
     const query = deferredSearch.trim().toLowerCase();
 
     if (!query) {
-      return uniqueWardrobeItems;
+      return searchableWardrobeItems;
     }
 
     return indexedWardrobeItems
       .filter((entry) => matchesIndexedSearchEntries(entry.entries, query))
       .map((entry) => entry.item);
-  }, [deferredSearch, indexedWardrobeItems, uniqueWardrobeItems]);
+  }, [deferredSearch, indexedWardrobeItems, searchableWardrobeItems]);
   const availableItems = filteredItems;
   const suggestionOptions = useMemo(() => {
     const query = deferredSearch.trim().toLowerCase();
@@ -716,7 +725,12 @@ export function OotdComposer({
       {submitErrors.scenario || submitErrors.items || submitErrors.save ? (
         <div className="space-y-1 text-sm text-red-700">
           {submitErrors.scenario ? <div>请填写{labels.scenario}</div> : null}
-          {submitErrors.items ? <div>请至少选择 1 个单品</div> : null}
+          {submitErrors.items ? (
+            <div>
+              {saveErrorMessage ??
+                (locale === "zh-CN" ? "请至少选择 1 个单品" : "Please select at least 1 item")}
+            </div>
+          ) : null}
           {submitErrors.save ? <div>{saveErrorMessage ?? labels.saveError}</div> : null}
         </div>
       ) : null}

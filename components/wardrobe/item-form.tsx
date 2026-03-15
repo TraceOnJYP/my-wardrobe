@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import type { WardrobeItem } from "@/types/item";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -76,13 +76,13 @@ const categoryFieldGroups: Record<
     { titleKey: "basicInfo", fields: ["brand", "category", "color", "size", "material"] },
     { titleKey: "styleInfo", fields: ["designElements", "season", "scenario"] },
     { titleKey: "usageInfo", fields: ["price", "priceRange", "useDays", "costPerWear"] },
-    { titleKey: "extraInfo", fields: ["purchaseDate", "purchaseChannel", "favoriteScore"] },
+    { titleKey: "extraInfo", fields: ["purchaseYear", "purchaseChannel", "favoriteScore"] },
   ],
   shoes: [
     { titleKey: "basicInfo", fields: ["brand", "category", "color"] },
     { titleKey: "styleInfo", fields: ["designElements", "scenario", "season"] },
     { titleKey: "usageInfo", fields: ["price", "priceRange", "wearDays", "costPerWear"] },
-    { titleKey: "extraInfo", fields: ["purchaseDate", "purchaseChannel", "favoriteScore"] },
+    { titleKey: "extraInfo", fields: ["purchaseYear", "purchaseChannel", "favoriteScore"] },
   ],
   jewelry: [
     { titleKey: "basicInfo", fields: ["brand", "category", "color"] },
@@ -101,7 +101,6 @@ const fieldTypeMap: Record<string, "text" | "number" | "date" | "textarea"> = {
   purchaseYear: "number",
   ageYears: "number",
   favoriteScore: "number",
-  purchaseDate: "date",
   designElements: "textarea",
   tags: "textarea",
   notes: "textarea",
@@ -121,6 +120,9 @@ export function ItemForm({
   const initialCategory = (initialItem?.itemType as CategoryKey | undefined) ?? "clothing";
   const defaultPurchaseDate = getTodayDateInputValue();
   const defaultPurchaseYear = String(new Date(defaultPurchaseDate).getFullYear());
+  const defaultPurchaseMonth = "";
+  const defaultPurchaseDay = "";
+  const currentYear = new Date().getFullYear();
   const [category, setCategory] = useState<CategoryKey>(initialCategory);
   const [values, setValues] = useState<Record<string, string>>({
     brand: initialItem?.brand ?? "",
@@ -147,9 +149,15 @@ export function ItemForm({
     useDays: (initialItem?.manualUseDays ?? initialItem?.useDays)?.toString() ?? "",
     costPerWear: initialItem?.costPerWear?.toString() ?? "",
     purchaseYear: initialItem?.purchaseYear?.toString() ?? defaultPurchaseYear,
+    purchaseMonth: initialItem?.purchaseDate ? String(Number(initialItem.purchaseDate.slice(5, 7))) : defaultPurchaseMonth,
+    purchaseDay: initialItem?.purchaseDate ? String(Number(initialItem.purchaseDate.slice(8, 10))) : defaultPurchaseDay,
     purchaseDate: initialItem?.purchaseDate?.slice(0, 10) ?? defaultPurchaseDate,
     purchaseChannel: initialItem?.purchaseChannel ?? "",
-    ageYears: initialItem?.ageYears?.toString() ?? "",
+    ageYears:
+      initialItem?.ageYears?.toString() ??
+      (Number.isFinite(Number(initialItem?.purchaseYear ?? defaultPurchaseYear))
+        ? String(Math.max(0, currentYear - Number(initialItem?.purchaseYear ?? defaultPurchaseYear)))
+        : ""),
     favoriteScore: initialItem?.favoriteScore?.toString() ?? "",
     notes: initialItem?.notes ?? "",
   });
@@ -162,19 +170,33 @@ export function ItemForm({
   const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [ageYearsTouched, setAgeYearsTouched] = useState(Boolean(initialItem?.ageYears !== undefined));
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const groups = categoryFieldGroups[category];
-  const requiredFields = new Set(groups[0].fields);
+  const requiredFields = new Set([...groups[0].fields, "purchaseYear"]);
 
   const setValue = (field: string, value: string) => {
     setValues((current) => ({ ...current, [field]: value }));
+    if (field === "ageYears") {
+      setAgeYearsTouched(true);
+    }
     setFieldErrors((current) => {
       if (!current[field]) return current;
       return { ...current, [field]: false };
     });
   };
+
+  useEffect(() => {
+    if (ageYearsTouched) return;
+    const purchaseYear = Number(values.purchaseYear);
+    if (!Number.isFinite(purchaseYear) || purchaseYear <= 1950) return;
+    setValues((current) => ({
+      ...current,
+      ageYears: String(Math.max(0, currentYear - purchaseYear)),
+    }));
+  }, [ageYearsTouched, currentYear, values.purchaseYear]);
 
   const setCustomField = (field: string, enabled: boolean) => {
     setCustomFields((current) => ({ ...current, [field]: enabled }));
@@ -197,6 +219,8 @@ export function ItemForm({
           : "",
       size: nextCategory === "bag" ? dict.options.size[0] ?? "" : "",
       purchaseYear: current.purchaseYear || defaultPurchaseYear,
+      purchaseMonth: current.purchaseMonth || defaultPurchaseMonth,
+      purchaseDay: current.purchaseDay || defaultPurchaseDay,
       purchaseDate: current.purchaseDate || defaultPurchaseDate,
     }));
   };
@@ -215,6 +239,14 @@ export function ItemForm({
       const next = Number(value);
       return Number.isNaN(next) ? undefined : next;
     };
+
+    const purchaseYear = toNumber(values.purchaseYear);
+    const purchaseMonth = toNumber(values.purchaseMonth);
+    const purchaseDay = toNumber(values.purchaseDay);
+    const purchaseDate =
+      purchaseYear && purchaseMonth
+        ? `${purchaseYear}-${String(purchaseMonth).padStart(2, "0")}-${String(Math.max(1, purchaseDay ?? 1)).padStart(2, "0")}`
+        : undefined;
 
     return {
       itemType: category,
@@ -238,8 +270,8 @@ export function ItemForm({
       wearDays: toNumber(values.wearDays),
       useDays: toNumber(values.useDays),
       costPerWear: toNumber(values.costPerWear),
-      purchaseYear: toNumber(values.purchaseYear),
-      purchaseDate: values.purchaseDate || undefined,
+      purchaseYear,
+      purchaseDate,
       purchaseChannel: values.purchaseChannel || undefined,
       ageYears: toNumber(values.ageYears),
       favoriteScore: toNumber(values.favoriteScore),
@@ -267,6 +299,54 @@ export function ItemForm({
                 : null;
     const isCustom = customFields[field] ?? false;
     const showManualWearHint = field === "wearDays" || field === "useDays";
+
+    if (field === "purchaseYear") {
+      const monthOptions = Array.from({ length: 12 }, (_, index) => String(index + 1));
+      const selectedMonth = Number(values.purchaseMonth || "0");
+      const maxDays =
+        selectedMonth > 0 && values.purchaseYear
+          ? new Date(Number(values.purchaseYear), selectedMonth, 0).getDate()
+          : 31;
+      const dayOptions = Array.from({ length: maxDays }, (_, index) => String(index + 1));
+
+      return (
+        <label key={field} className="space-y-2 md:col-span-2">
+          <div className={cn("text-sm font-medium", hasError && "text-[#c25151]")}>
+            {label}
+            {required ? <span className={cn("ml-1 text-[hsl(var(--primary))]", hasError && "text-[#c25151]")}>*</span> : null}
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            <Input
+              className={cn(
+                hasError &&
+                  "border-[#e3aaaa] bg-[#fff4f3] focus-visible:border-[#d76d6d] focus-visible:ring-[#d76d6d]/20",
+              )}
+              type="number"
+              min={1951}
+              placeholder={dict.placeholders.purchaseYear}
+              value={values.purchaseYear ?? ""}
+              onChange={(event) => setValue("purchaseYear", event.target.value)}
+            />
+            <Select value={values.purchaseMonth ?? ""} onChange={(event) => setValue("purchaseMonth", event.target.value)}>
+              <option value="">{dict.placeholders.purchaseMonth}</option>
+              {monthOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </Select>
+            <Select value={values.purchaseDay ?? ""} onChange={(event) => setValue("purchaseDay", event.target.value)}>
+              <option value="">{dict.placeholders.purchaseDay}</option>
+              {dayOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </Select>
+          </div>
+        </label>
+      );
+    }
 
     return (
       <label key={field} className="space-y-2">

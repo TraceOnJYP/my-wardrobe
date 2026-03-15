@@ -124,8 +124,15 @@ export async function attachDerivedUsage(userId: string, items: WardrobeItem[]) 
     const derivedCount = usageMap.get(item.id) ?? 0;
     const manualWearDays = item.manualWearDays ?? item.wearDays ?? 0;
     const manualUseDays = item.manualUseDays ?? item.useDays ?? 0;
-    const ootdWearDays = item.itemType === "bag" ? 0 : derivedCount;
+    const ootdWearDays = derivedCount;
     const ootdUseDays = item.itemType === "bag" ? derivedCount : 0;
+    const totalWearDays = manualWearDays + ootdWearDays;
+    const dynamicCostPerWear =
+      item.price !== undefined
+        ? totalWearDays > 0
+          ? Number((item.price / totalWearDays).toFixed(2))
+          : item.price
+        : item.costPerWear;
 
     return {
       ...item,
@@ -133,8 +140,9 @@ export async function attachDerivedUsage(userId: string, items: WardrobeItem[]) 
       manualUseDays,
       ootdWearDays,
       ootdUseDays,
-      wearDays: manualWearDays + ootdWearDays,
+      wearDays: totalWearDays,
       useDays: manualUseDays + ootdUseDays,
+      costPerWear: dynamicCostPerWear,
     };
   });
 }
