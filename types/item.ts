@@ -37,5 +37,6 @@ export interface WardrobeItem {
   discardedAt?: string;
   deletedAt?: string;
   status?: "active" | "discarded" | "deleted";
+  createdAt?: string;
   updatedAt: string;
 }

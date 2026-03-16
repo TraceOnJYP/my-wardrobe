@@ -1,9 +1,6 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { badRequest, ok, unauthorized } from "@/lib/api/response";
 import { requireSessionUser } from "@/lib/auth/session";
-
-const uploadsDir = path.join(process.cwd(), "public", "uploads", "wardrobe");
+import { uploadImageFile } from "@/lib/storage/object-storage";
 
 export async function POST(request: Request) {
   const user = await requireSessionUser();
@@ -20,15 +17,16 @@ export async function POST(request: Request) {
     return badRequest("Only image files are supported");
   }
 
-  const extension = path.extname(file.name) || ".jpg";
-  const fileName = `${crypto.randomUUID()}${extension.toLowerCase()}`;
-  const targetPath = path.join(uploadsDir, fileName);
-
-  await mkdir(uploadsDir, { recursive: true });
-  await writeFile(targetPath, Buffer.from(await file.arrayBuffer()));
+  const uploaded = await uploadImageFile({
+    buffer: Buffer.from(await file.arrayBuffer()),
+    contentType: file.type || "image/jpeg",
+    originalName: file.name,
+    folder: "wardrobe",
+  });
 
   return ok({
-    url: `/uploads/wardrobe/${fileName}`,
-    fileName,
+    url: uploaded.url,
+    fileName: uploaded.fileName,
+    storage: uploaded.storage,
   });
 }

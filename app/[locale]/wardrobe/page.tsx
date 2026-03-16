@@ -138,6 +138,12 @@ export default async function WardrobePage({
         <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
           <SectionHeader title={dict.wardrobe.title} subtitle={dict.wardrobe.subtitle} />
           <div className="flex flex-wrap gap-3">
+            <a
+              href="/api/items/export"
+              className="rounded-full border border-white/70 bg-white/90 px-4 py-2 text-sm font-medium"
+            >
+              {dict.wardrobe.actions.exportExcel}
+            </a>
             <Link
               href={`/${locale}/wardrobe/new?mode=import`}
               className="rounded-full border border-white/70 bg-white/90 px-4 py-2 text-sm font-medium"

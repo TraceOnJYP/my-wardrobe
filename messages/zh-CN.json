@@ -179,7 +179,8 @@
     },
     "actions": {
       "addItem": "添加衣物",
-      "importExcel": "Excel 导入"
+      "importExcel": "Excel 导入",
+      "exportExcel": "导出衣橱"
     },
     "modules": {
       "manual": "手动录入",
@@ -466,7 +467,8 @@
       "items": "衣物数量",
       "spend": "累计花费",
       "avgCost": "平均单品穿搭成本",
-      "idle": "近一年未穿"
+      "idle": "近一年未穿",
+      "idleNote": "仅统计加入衣橱满一年，且最近一年未出现在穿搭日历中的单品"
     },
     "modules": {
       "spend": {

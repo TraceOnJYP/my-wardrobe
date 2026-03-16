@@ -302,6 +302,7 @@ export async function getItems(locale: Locale, query: WardrobeQuery = {}) {
       discardedAt: record.discardedAt ? toDateOnlyString(record.discardedAt) : undefined,
       deletedAt: record.deletedAt ? record.deletedAt.toISOString() : undefined,
       status: record.deletedAt ? "deleted" : record.discardedAt ? "discarded" : "active",
+      createdAt: record.createdAt.toISOString(),
       updatedAt: record.updatedAt.toISOString(),
     }));
 
@@ -329,7 +330,12 @@ export async function getItems(locale: Locale, query: WardrobeQuery = {}) {
         distinct: ["wardrobeItemId"],
       });
       const activeItemIds = new Set(activeRows.map((row) => row.wardrobeItemId));
-      derivedItems = derivedItems.filter((item) => !activeItemIds.has(item.id));
+      derivedItems = derivedItems.filter((item) => {
+        if (!item.createdAt) return false;
+        const createdAt = new Date(item.createdAt);
+        if (Number.isNaN(createdAt.getTime()) || createdAt > cutoff) return false;
+        return !activeItemIds.has(item.id);
+      });
     }
 
     return {

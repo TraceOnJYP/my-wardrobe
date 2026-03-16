@@ -241,6 +241,11 @@ export async function getAnalyticsSummary(
         )
       : 0;
   const unwornLastYearItems = items.filter((item) => {
+    if (!item.createdAt) return false;
+    const createdAt = new Date(item.createdAt);
+    if (Number.isNaN(createdAt.getTime()) || createdAt > subtractYearsUtc(new Date(), 1)) {
+      return false;
+    }
     const lastWear = lastWearMap.get(item.id);
     return !lastWear || lastWear < oneYearAgoKey;
   });

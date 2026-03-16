@@ -40,7 +40,7 @@ export default async function InsightsPage({
   }>;
 }) {
   const { locale } = await params;
-  const { type = "all", spendRange = "6", ootdRange = "6" } = await searchParams;
+  const { type = "clothing", spendRange = "6", ootdRange = "6" } = await searchParams;
   const dict = await getDictionary(locale);
   const currentSeasonLabel = getCurrentSeasonLabel(locale);
   const spendMonthRange = spendRange === "12" ? 12 : spendRange === "all" ? "all" : 6;
@@ -51,13 +51,13 @@ export default async function InsightsPage({
   ]);
   const summary = spendSummary;
   const tabs = [
-    { value: "all", label: dict.wardrobe.types.all },
     { value: "clothing", label: dict.wardrobe.types.clothing },
     { value: "accessory", label: dict.wardrobe.types.accessory },
     { value: "bag", label: dict.wardrobe.types.bag },
     { value: "shoes", label: dict.wardrobe.types.shoes },
     { value: "jewelry", label: dict.wardrobe.types.jewelry },
     { value: "other", label: dict.wardrobe.types.other },
+    { value: "all", label: dict.wardrobe.types.all },
   ] as const satisfies Array<{ value: InsightTab; label: string }>;
   const rangeTabs = [
     { value: "6", label: locale === "zh-CN" ? "近 6 个月" : "6M" },
@@ -176,6 +176,27 @@ export default async function InsightsPage({
         />
       </div>
 
+      <div className="grid gap-4 xl:grid-cols-2">
+        <RankingCard
+          locale={locale}
+          title={dict.insights.modules.recentTopWorn.title}
+          subtitle={dict.insights.modules.recentTopWorn.subtitle}
+          entries={summary.data.recentTopClothingItems}
+          emptyText={dict.insights.empty}
+        />
+        <RankingCard
+          locale={locale}
+          title={
+            locale === "zh-CN"
+              ? `${dict.insights.modules.seasonalCost.title}（${currentSeasonLabel}）`
+              : `${dict.insights.modules.seasonalCost.title} (${currentSeasonLabel})`
+          }
+          subtitle={dict.insights.modules.seasonalCost.subtitle}
+          entries={summary.data.seasonalCostByTypeItems}
+          emptyText={dict.insights.empty}
+        />
+      </div>
+
       <div className="grid gap-4 xl:grid-cols-3">
         <RankingCard
           locale={locale}
@@ -196,27 +217,6 @@ export default async function InsightsPage({
           title={dict.insights.modules.costPerWear.title}
           subtitle={dict.insights.modules.costPerWear.subtitle}
           entries={summary.data.costPerWearItems}
-          emptyText={dict.insights.empty}
-        />
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-2">
-        <RankingCard
-          locale={locale}
-          title={dict.insights.modules.recentTopWorn.title}
-          subtitle={dict.insights.modules.recentTopWorn.subtitle}
-          entries={summary.data.recentTopClothingItems}
-          emptyText={dict.insights.empty}
-        />
-        <RankingCard
-          locale={locale}
-          title={
-            locale === "zh-CN"
-              ? `${dict.insights.modules.seasonalCost.title}（${currentSeasonLabel}）`
-              : `${dict.insights.modules.seasonalCost.title} (${currentSeasonLabel})`
-          }
-          subtitle={dict.insights.modules.seasonalCost.subtitle}
-          entries={summary.data.seasonalCostByTypeItems}
           emptyText={dict.insights.empty}
         />
       </div>

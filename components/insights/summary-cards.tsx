@@ -8,7 +8,7 @@ export function SummaryCards({
   links,
 }: {
   summary: AnalyticsSummary;
-  labels: { items: string; spend: string; avgCost: string; idle: string };
+  labels: { items: string; spend: string; avgCost: string; idle: string; idleNote?: string };
   locale: string;
   links?: Partial<Record<"items" | "spend" | "avgCost" | "idle", string>>;
 }) {
@@ -21,7 +21,7 @@ export function SummaryCards({
     { label: labels.items, value: summary.totalItems },
     { label: labels.spend, value: `¥${formatNumber(summary.totalSpend)}` },
     { label: labels.avgCost, value: `¥${formatNumber(summary.averageCostPerWear)}` },
-    { label: labels.idle, value: summary.unwornLastYearCount, href: links?.idle },
+    { label: labels.idle, value: summary.unwornLastYearCount, href: links?.idle, note: labels.idleNote },
   ];
 
   return (
@@ -32,11 +32,17 @@ export function SummaryCards({
             <a href={card.href} className="block">
               <div className="text-sm text-[hsl(var(--muted-foreground))]">{card.label}</div>
               <div className="mt-2 text-2xl font-semibold">{card.value}</div>
+              {card.note ? (
+                <div className="mt-2 text-xs leading-5 text-[hsl(var(--muted-foreground))]">{card.note}</div>
+              ) : null}
             </a>
           ) : (
             <>
               <div className="text-sm text-[hsl(var(--muted-foreground))]">{card.label}</div>
               <div className="mt-2 text-2xl font-semibold">{card.value}</div>
+              {card.note ? (
+                <div className="mt-2 text-xs leading-5 text-[hsl(var(--muted-foreground))]">{card.note}</div>
+              ) : null}
             </>
           )}
         </Card>

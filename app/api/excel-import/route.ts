@@ -1,9 +1,9 @@
-import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import JSZip from "jszip";
 import * as XLSX from "xlsx";
 import { badRequest, ok, unauthorized } from "@/lib/api/response";
 import { requireSessionUser } from "@/lib/auth/session";
+import { uploadImageFile } from "@/lib/storage/object-storage";
 import type { CreateWardrobeItemDto } from "@/types/dto";
 import { wardrobeService } from "@/server/services/wardrobe.service";
 
@@ -17,8 +17,6 @@ const supportedSheets = [
 
 const imageFieldKeys = ["图片名", "图片文件名", "图片", "image_name", "image", "image_key"];
 const identifierKeys = ["编号", "id", "ID"];
-const uploadsDir = path.join(process.cwd(), "public", "uploads", "wardrobe");
-
 type SupportedSheet = (typeof supportedSheets)[number];
 type SheetRow = Record<string, string>;
 
@@ -386,11 +384,29 @@ function resolveImageMatch(row: SheetRow, images: ImageArchiveEntry[]) {
 }
 
 async function persistImage(entry: ImageArchiveEntry) {
-  await mkdir(uploadsDir, { recursive: true });
-  const fileName = `${crypto.randomUUID()}${entry.extension}`;
-  const targetPath = path.join(uploadsDir, fileName);
-  await writeFile(targetPath, entry.buffer);
-  return `/uploads/wardrobe/${fileName}`;
+  const uploaded = await uploadImageFile({
+    buffer: entry.buffer,
+    contentType: getImageContentType(entry.extension),
+    originalName: entry.originalName,
+    folder: "wardrobe",
+  });
+
+  return uploaded.url;
+}
+
+function getImageContentType(extension: string) {
+  switch (extension.toLowerCase()) {
+    case ".png":
+      return "image/png";
+    case ".webp":
+      return "image/webp";
+    case ".gif":
+      return "image/gif";
+    case ".jpg":
+    case ".jpeg":
+    default:
+      return "image/jpeg";
+  }
 }
 
 export async function POST(request: Request) {

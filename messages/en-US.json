@@ -179,7 +179,8 @@
     },
     "actions": {
       "addItem": "Add Item",
-      "importExcel": "Excel Import"
+      "importExcel": "Excel Import",
+      "exportExcel": "Export Wardrobe"
     },
     "modules": {
       "manual": "Manual Entry",
@@ -466,7 +467,8 @@
       "items": "Items",
       "spend": "Spend",
       "avgCost": "Avg wear cost",
-      "idle": "Idle in 1 year"
+      "idle": "Idle in 1 year",
+      "idleNote": "Only counts items added over a year ago and not recorded in the outfit calendar during the last year"
     },
     "modules": {
       "spend": {

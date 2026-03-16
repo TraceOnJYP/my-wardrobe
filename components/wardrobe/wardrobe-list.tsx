@@ -41,10 +41,7 @@ type ColumnId = Exclude<SortField, "name">;
 
 const DEFAULT_VISIBLE_COLUMNS: ColumnId[] = [
   "designElements",
-  "itemType",
-  "category",
-  "brand",
-  "color",
+  "material",
   "season",
   "price",
   "wearDays",
@@ -53,9 +50,7 @@ const DEFAULT_VISIBLE_COLUMNS: ColumnId[] = [
 const STORAGE_KEY = "smart-wardrobe:list-visible-columns";
 
 function migrateVisibleColumns(columns: ColumnId[]) {
-  const uniqueColumns = Array.from(new Set(columns)).filter((column) => column !== "subcategory");
-  const withoutDesignElements = uniqueColumns.filter((column) => column !== "designElements");
-  return ["designElements", ...withoutDesignElements] as ColumnId[];
+  return Array.from(new Set(columns)).filter((column) => column !== "subcategory") as ColumnId[];
 }
 
 function formatDate(value: string, locale: string) {
@@ -234,6 +229,7 @@ export function WardrobeList({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [visibleColumns, setVisibleColumns] = useState<ColumnId[]>(DEFAULT_VISIBLE_COLUMNS);
+  const [hasLoadedVisibleColumns, setHasLoadedVisibleColumns] = useState(false);
   const [pageSize, setPageSize] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
   const [isPending, startTransition] = useTransition();
@@ -270,30 +266,38 @@ export function WardrobeList({
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
+      if (!raw) {
+        setHasLoadedVisibleColumns(true);
+        return;
+      }
 
       const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return;
+      if (!Array.isArray(parsed)) {
+        setHasLoadedVisibleColumns(true);
+        return;
+      }
 
       const next = migrateVisibleColumns(
         columnOptions.map((column) => column.id).filter((id) => parsed.includes(id)),
       );
       if (next.length > 0) {
         setVisibleColumns(next);
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       }
     } catch {
       return;
+    } finally {
+      setHasLoadedVisibleColumns(true);
     }
   }, []);
 
   useEffect(() => {
+    if (!hasLoadedVisibleColumns) return;
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(visibleColumns));
     } catch {
       return;
     }
-  }, [visibleColumns]);
+  }, [hasLoadedVisibleColumns, visibleColumns]);
 
   const sortedItems = useMemo(() => {
     if (sortFields.length === 0) {
