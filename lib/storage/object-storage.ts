@@ -20,6 +20,16 @@ interface UploadFileResult {
   storage: "oss" | "local";
 }
 
+export class ObjectStorageUploadError extends Error {
+  code: "OSS_CONFIG" | "OSS_ACCESS_DENIED" | "OSS_UPLOAD_FAILED";
+
+  constructor(code: ObjectStorageUploadError["code"], message: string) {
+    super(message);
+    this.name = "ObjectStorageUploadError";
+    this.code = code;
+  }
+}
+
 function getExtension(fileName: string) {
   const extension = path.extname(fileName).toLowerCase();
   return extension || ".jpg";
@@ -50,7 +60,7 @@ function createOssClient() {
   const endpoint = process.env.OSS_ENDPOINT;
 
   if (!bucket || !accessKeyId || !accessKeySecret || (!region && !endpoint)) {
-    throw new Error("OSS is not fully configured");
+    throw new ObjectStorageUploadError("OSS_CONFIG", "OSS is not fully configured");
   }
 
   return new OSS({
@@ -114,6 +124,16 @@ async function uploadToOss(params: UploadFileParams): Promise<UploadFileResult> 
       "Content-Type": params.contentType,
       "Cache-Control": "public, max-age=31536000, immutable",
     },
+  }).catch((error: unknown) => {
+    const code = typeof error === "object" && error !== null && "code" in error ? String((error as { code?: string }).code) : "";
+    if (code === "AccessDenied") {
+      throw new ObjectStorageUploadError(
+        "OSS_ACCESS_DENIED",
+        "OSS rejected the upload. Check Bucket ACL and RAM PutObject permission.",
+      );
+    }
+
+    throw new ObjectStorageUploadError("OSS_UPLOAD_FAILED", "Failed to upload image to OSS.");
   });
 
   return {
