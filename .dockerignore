@@ -1,0 +1,17 @@
+.git
+.gitignore
+.next
+node_modules
+npm-debug.log
+.env
+.env.*
+!.env.example
+coverage
+dist
+tmp
+.DS_Store
+README.md
+docs
+public/uploads
+*.sqlite
+*.db
