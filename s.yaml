@@ -1,0 +1,98 @@
+edition: 3.0.0
+name: smart-wardrobe-cn
+
+access: default
+
+vars:
+  region: cn-hangzhou
+  service:
+    name: smart-wardrobe
+    description: Smart Wardrobe China production service
+  function:
+    name: web
+    description: Next.js 15 application running on FC custom container
+    timeout: 60
+    memorySize: 2048
+    cpu: 1
+    diskSize: 512
+    caPort: 9000
+  customDomain:
+    domainName: app.your-domain.com
+    protocol: HTTP,HTTPS
+    route:
+      path: /*
+      qualifier: LATEST
+  image:
+    registry: <your-acr-registry>/smart-wardrobe
+    tag: latest
+
+resources:
+  smartWardrobeService:
+    component: fc3
+    props:
+      region: ${vars.region}
+      description: ${vars.service.description}
+      internetAccess: true
+      logConfig:
+        enableRequestMetrics: true
+        enableInstanceMetrics: true
+      function:
+        name: ${vars.function.name}
+        description: ${vars.function.description}
+        runtime: custom-container
+        timeout: ${vars.function.timeout}
+        memorySize: ${vars.function.memorySize}
+        cpu: ${vars.function.cpu}
+        diskSize: ${vars.function.diskSize}
+        caPort: ${vars.function.caPort}
+        customContainerConfig:
+          image: ${vars.image.registry}:${vars.image.tag}
+          accelerationType: Default
+        instanceConcurrency: 10
+        environmentVariables:
+          NODE_ENV: production
+          PORT: "9000"
+          DATABASE_URL: postgresql://<user>:<password>@<rds-host>:5432/smart_wardrobe
+          AUTH_SECRET: <replace-me>
+          NEXTAUTH_URL: https://app.your-domain.com
+          GOOGLE_CLIENT_ID: <replace-me>
+          GOOGLE_CLIENT_SECRET: <replace-me>
+          APPLE_CLIENT_ID: <replace-me>
+          APPLE_CLIENT_SECRET: <replace-me>
+          APPLE_TEAM_ID: <replace-me>
+          APPLE_KEY_ID: <replace-me>
+          APPLE_PRIVATE_KEY: <replace-me>
+          WECHAT_CLIENT_ID: <replace-me>
+          WECHAT_CLIENT_SECRET: <replace-me>
+          WECHAT_SCOPE: snsapi_login
+          OSS_REGION: cn-hangzhou
+          OSS_ENDPOINT: oss-cn-hangzhou.aliyuncs.com
+          OSS_BUCKET: smart-wardrobe-prod
+          OSS_ACCESS_KEY_ID: <replace-me>
+          OSS_ACCESS_KEY_SECRET: <replace-me>
+          OSS_PUBLIC_BASE_URL: https://img.your-domain.com
+          OSS_PREFIX: smart-wardrobe/prod
+          ENABLE_DEMO_MODE: "false"
+          DEMO_USER_ID: 00000000-0000-0000-0000-000000000001
+      triggers:
+        - triggerName: defaultTrigger
+          triggerType: http
+          description: Smart Wardrobe HTTP trigger
+          qualifier: LATEST
+          triggerConfig:
+            authType: anonymous
+            disableURLInternet: false
+            methods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+      customDomains:
+        - domainName: ${vars.customDomain.domainName}
+          protocol: ${vars.customDomain.protocol}
+          routeConfig:
+            routes:
+              - path: ${vars.customDomain.route.path}
+                qualifier: ${vars.customDomain.route.qualifier}
